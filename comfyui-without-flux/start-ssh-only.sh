@@ -19,6 +19,14 @@ fi
 # Move ai-toolkit's folder to $VOLUME so models and all config will persist
 /ai-toolkit-on-workspace.sh
 
+# Fetch the public models that are not baked into the image straight to the volume, in the
+# background so they don't delay startup. Already-present files are skipped.
+echo "Starting background model downloads (log: /workspace/model_downloads.log)"
+/download_base_models.sh > /workspace/model_downloads.log 2>&1 &
+if [ -f /workspace/ComfyUI/models/diffusion_models/flux1-dev.sft ]; then
+    /download_flux_extras.sh >> /workspace/model_downloads.log 2>&1 &
+fi
+
 #!/bin/bash
 if [[ -z "${HF_TOKEN}" ]] || [[ "${HF_TOKEN}" == "enter_your_huggingface_token_here" ]]
 then
