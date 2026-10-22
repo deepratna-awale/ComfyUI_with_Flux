@@ -1,5 +1,12 @@
 # ComfyUI with Flux.1-dev
 
+## Update 2026-10-22
+- **Faster deployment on RunPod**: the Docker images are a lot smaller (about 35% for the 'without Flux' image and about 30% for the 'with Flux' image), so pods pull and start faster.
+    - Public models (SD1.5, inswapper, face detection, Flux text encoders, example LoRAs, openpose annotators) are no longer baked into the image. They are downloaded straight to the network volume in the background on first start (log: `/workspace/model_downloads.log`), so they also no longer need to be copied to the volume.
+    - Dropped the unused CUDA runtime libraries from the image (PyTorch ships its own) and the git history of all custom nodes.
+    - AI-Toolkit's code now stays inside the image; only your configs, datasets, outputs and the UI database are persisted on the volume in `/workspace/ai-toolkit-data`. `/workspace/ai-toolkit` still works as before.
+    - Removed the Mixlab nodes from the image (they were disabled at startup anyway).
+
 ## Update 2026-04-05
 - Added LTX2.3 workflows: I2V and FL2V
 - Updated ComfyUI to latest version
