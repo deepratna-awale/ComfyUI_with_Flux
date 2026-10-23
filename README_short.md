@@ -6,6 +6,10 @@
 
 This is a shortened version of the README, read the full version here: [ComfyUI with Flux.1-dev README](https://github.com/ValyrianTech/ComfyUI_with_Flux/blob/main/README.md)
 
+## Update 2026-10-22
+- New environment variable `JUPYTER_PASSWORD`: the login for JupyterLab. If it's left empty, JupyterLab opens without a login.
+- Relaxed file permissions, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
+
 ## Update 2026-04-05
 - Added LTX2.3 workflows: I2V and FL2V
 - Updated ComfyUI to latest version
