@@ -276,9 +276,9 @@ COPY --chmod=644 ai-toolkit/train_lora.yaml /ai-toolkit/config/train_lora.yaml
 COPY --chmod=755 ai-toolkit/caption_images.py /caption_images.py
 
 # COPY --chmod=644 also applies 644 to the directories it creates (no execute bit). Root gets
-# past that on the image's overlay filesystem, but not once /ComfyUI is moved onto the NFS
-# network volume, where ComfyUI then can't open /workspace/ComfyUI/user/comfyui.log. The
-# background chmod in start.sh would get there eventually, but ComfyUI starts first.
+# past that on the image's overlay filesystem, but not on the NFS network volume. The folders that
+# go to the volume are re-created there with open modes by comfyui-on-workspace.sh, which also
+# fixes directories older images left on the volume; this keeps the copies in the image usable too.
 RUN find /ComfyUI/user /ComfyUI/input /ComfyUI/web/templates /ai-toolkit/config -type d -exec chmod 777 {} +
 
 # fix missing directory for old network volumes
