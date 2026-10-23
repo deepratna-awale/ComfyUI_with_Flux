@@ -18,7 +18,7 @@ fi
 umask 000
 
 # Start nginx and JupyterLab first: they don't depend on the volume layout, so they are usable
-# while ComfyUI is being copied to the volume on first boot.
+# while the volume is being set up.
 # Start nginx as reverse proxy to enable api access
 service nginx start
 
@@ -32,7 +32,7 @@ else
     echo "JupyterLab started without a login (JUPYTER_PASSWORD is not set)"
 fi
 
-# Move text-generation-webui's folder to $VOLUME so models and all config will persist
+# Keep ComfyUI's models, input, output, user folder and user-installed custom nodes on the volume
 /comfyui-on-workspace.sh
 
 # Move ai-toolkit's folder to $VOLUME so models and all config will persist
@@ -82,6 +82,9 @@ if [ -d "/workspace/venv" ]; then
     echo "venv directory found, activating it"
     source /workspace/venv/bin/activate
 fi
+
+# Install the requirements of custom nodes you installed yourself (they live on the volume)
+bash /install_user_custom_nodes.sh
 
 # Check if user's script exists in /workspace
 if [ ! -f /workspace/start_user.sh ]; then
