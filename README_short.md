@@ -6,6 +6,9 @@
 
 This is a shortened version of the README, read the full version here: [ComfyUI with Flux.1-dev README](https://github.com/ValyrianTech/ComfyUI_with_Flux/blob/main/README.md)
 
+## Choosing which models to download
+Models download to the network volume in the background on pod start, so ComfyUI starts right away. By default only Flux (`DOWNLOAD_FLUX=true`, needs `HF_TOKEN`) and the models its workflows need are downloaded. Enable other sets with environment variables such as `DOWNLOAD_WAN22=true`, `DOWNLOAD_LTX23=true` or `DOWNLOAD_QWEN_FP8=true`, or list them in `DOWNLOAD_MODELS=wan2.2,ltx2.3`. See the full README for every option.
+
 ## Update 2026-04-05
 - Added LTX2.3 workflows: I2V and FL2V
 - Updated ComfyUI to latest version
