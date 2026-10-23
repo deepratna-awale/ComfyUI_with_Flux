@@ -229,6 +229,13 @@ RUN cp /tmp/jupyter_checkpoints_dir_fix.py "$(python -c 'import sysconfig; print
     echo '{"ServerApp": {"jpserver_extensions": {"jupyter_checkpoints_dir_fix": true}}}' \
         > /etc/jupyter/jupyter_server_config.d/jupyter_checkpoints_dir_fix.json
 
+# JupyterLab: default to the dark theme. overrides.json only changes the default, so users can
+# still switch themes in Settings and their choice is kept in their own user settings.
+RUN mkdir -p /opt/venv/share/jupyter/lab/settings && \
+    echo '{"@jupyterlab/apputils-extension:themes": {"theme": "JupyterLab Dark"}}' \
+        > /opt/venv/share/jupyter/lab/settings/overrides.json && \
+    chmod -R a+rwX /opt/venv/share/jupyter/lab/settings
+
 # App configuration and assets
 # Loads the custom nodes you install yourself from the volume (see comfyui-on-workspace.sh)
 COPY --chmod=644 extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
