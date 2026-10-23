@@ -4,17 +4,18 @@
 - **Faster deployment on RunPod**: the Docker images are a lot smaller (about 35% for the 'without Flux' image and about 30% for the 'with Flux' image), so pods pull and start faster.
     - Public models (SD1.5, inswapper, face detection, Flux text encoders, example LoRAs, openpose annotators) are no longer baked into the image. They are downloaded straight to the network volume in the background on first start (log: `/workspace/model_downloads.log`), so they also no longer need to be copied to the volume.
     - **You choose which models are downloaded** with environment variables, see [Choosing which models to download](#choosing-which-models-to-download). By default only Flux and the models its workflows need are downloaded.
-    - Model downloads never block startup any more: ComfyUI, JupyterLab and the AI-Toolkit UI come up right away while the models download in the background, several files at a time and over multiple connections each.
+    - Models download in the background, several files at a time and over multiple connections each. JupyterLab is the first thing to start and the AI-Toolkit UI comes up right away too. ComfyUI waits only for Flux and its text encoders, so the Flux workflows work as soon as it opens, while the other model sets keep downloading.
     - Dropped the unused CUDA runtime libraries from the image (PyTorch ships its own) and the git history of all custom nodes.
     - AI-Toolkit's code now stays inside the image; only your configs, datasets, outputs and the UI database are persisted on the volume in `/workspace/ai-toolkit-data`. `/workspace/ai-toolkit` still works as before.
     - Removed the Mixlab nodes from the image (they were disabled at startup anyway).
     - **ComfyUI is no longer copied to the network volume.** Its code, the bundled custom nodes and the Python environment stay in the image, so the first start doesn't wait for a 1.5 GB copy and image updates actually take effect. Only your data lives on the volume, see [What is stored on the network volume](#what-is-stored-on-the-network-volume).
 - **New environment variable `JUPYTER_PASSWORD`**: the login for JupyterLab. If it's left empty, JupyterLab opens without a login.
+- **CivitAI downloader included**: `civitai-download` ([civitai-bulk-downloader](https://github.com/deepratna-awale/civitai-bulk-downloader)) is installed, with an example notebook in `/workspace/civitai`. Set your CivitAI API key in the new `CAI_API_KEY` environment variable, see [Downloading models from CivitAI](#downloading-models-from-civitai).
 - **Relaxed file permissions**: files and folders in the image and on `/workspace` can be written by every user and tool, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
 
 ## Choosing which models to download
 
-On every pod start, the model sets you select are downloaded straight to the network volume in the background, all at the same time (log: `/workspace/model_downloads.log`). Files that are already on the volume are skipped, so after the first start only new selections are downloaded. ComfyUI starts right away; models show up in it as each file finishes (refresh the model list in the UI to see them).
+On every pod start, the model sets you select are downloaded straight to the network volume in the background, all at the same time (log: `/workspace/model_downloads.log`). Files that are already on the volume are skipped, so after the first start only new selections are downloaded. ComfyUI starts as soon as the Flux set (Flux, its VAE and the clip_l and t5xxl text encoders) is on the volume, so on the first start it waits for that download; set `COMFYUI_WAIT_FOR_FLUX=false` to start it right away instead. The other sets keep downloading after ComfyUI is up, and their models show up as each file finishes (refresh the model list in the UI to see them).
 
 Set these as environment variables in the RunPod template, or when deploying a pod:
 
@@ -194,6 +195,17 @@ You can use JupyterLab to upload files to your pod, like custom LoRa models or o
 Click on the "Connect to HTTP Service [Port 8888]" button to open JupyterLab.
 Set the `JUPYTER_PASSWORD` environment variable in the template to protect JupyterLab: you will be asked for a token, enter that password.
 If `JUPYTER_PASSWORD` is left empty, JupyterLab opens without any login. The pod's proxy URL is public, so anyone who has that URL then gets full access to the pod, including your HF_TOKEN and your files.
+
+JupyterLab is started first, before the volume setup and the model downloads, so you can use it while the models are still downloading.
+
+### Downloading models from CivitAI
+[civitai-bulk-downloader](https://github.com/deepratna-awale/civitai-bulk-downloader) is installed in the image, both as the `civitai-download` command and as the `civitai_downloader` Python package. Set the `CAI_API_KEY` environment variable in the template to your CivitAI API key (create one at https://civitai.com/user/account), then open `/workspace/civitai/civitai_downloader.ipynb` in JupyterLab, or run it from a terminal:
+
+```bash
+civitai-download --sd /ComfyUI --ui comfyui --url "https://civitai.com/models/4201?modelVersionId=130072"
+```
+
+Each model is saved into the matching ComfyUI folder (LoRAs in `models/loras`, checkpoints in `models/checkpoints`, ...) on the network volume.
 
 Note: JupyterLab normally cannot open folders named 'checkpoints' (such as /ComfyUI/models/checkpoints), because that word is reserved by its notebook-checkpoint API. This image includes a small server extension that works around it, so the folder opens like any other.
 
