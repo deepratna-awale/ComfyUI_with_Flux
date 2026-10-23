@@ -115,8 +115,11 @@ RUN pip uninstall -y mediapipe controlnet_aux && \
     pip install --no-cache-dir mediapipe==0.10.14 controlnet-aux==0.0.10
 
 # Prebuild AI-Toolkit UI (install deps, init DB, and build)
+# The sqlite3 npm package ships a prebuilt binary that needs glibc 2.38, but Ubuntu 22.04 has
+# 2.35 ("GLIBC_2.38 not found" at build and at runtime), so compile it against this image's glibc.
 RUN set -eux; cd /ai-toolkit/ui; \
     npm ci || npm install; \
+    npm_config_build_from_source=true npm rebuild sqlite3; \
     npm run update_db; \
     npm run build
 
