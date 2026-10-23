@@ -72,9 +72,15 @@ fi
 # Start nginx as reverse proxy to enable api access
 service nginx start
 
-# Start JupyterLab
-jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.allow_origin='*' &
-echo "JupyterLab started"
+# Start JupyterLab. Its URL on the RunPod proxy is public, so set JUPYTER_PASSWORD to protect it;
+# it is used as the login token. Left empty, JupyterLab opens without any login.
+if [[ -n "${JUPYTER_PASSWORD}" ]]; then
+    JUPYTER_TOKEN="${JUPYTER_PASSWORD}" jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' &
+    echo "JupyterLab started (login with JUPYTER_PASSWORD)"
+else
+    jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' --ServerApp.token='' --ServerApp.password='' &
+    echo "JupyterLab started without a login (JUPYTER_PASSWORD is not set)"
+fi
 
 # Check if the flux model is present
 bash /check_files.sh
