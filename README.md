@@ -72,7 +72,7 @@
     - websocket_image_save, ComfyUI-Florence2, ComfyUI-Logic, cg-use-everywhere, comfy-plasma, cg-image-picker, ComfyUI_JPS-Nodes,
     ComfyUI_essentials, ComfyUI-Flowty-LDSR, ComfyUI-VideoHelperSuite, ComfyUI-KJNodes, ComfyUI-Custom-Scripts, ComfyUI-Manager, 
     ComfyUI_UltimateSDUpscale, ComfyUI-AdvancedLivePortrait, x-flux-comfyui, rgthree-comfy, ComfyUI-Impact-Pack, ComfyUI_ComfyRoll_CustomNodes,
-    ComfyUI-SUPIR, was-node-suite-comfyui, comfyui_controlnet_aux, ComfyUI-Easy-Use, comfyui-reactor-node, ComfyUI_LayerStyle, comfyui-mixlab-nodes
+    ComfyUI-SUPIR, was-node-suite-comfyui, comfyui_controlnet_aux, ComfyUI-Easy-Use, comfyui-reactor-node, ComfyUI_LayerStyle
 
     - This should make the problems with 'IMPORT FAILED' less frequent. If you still encounter this problem when restarting a pod, you can go to the manager and click on 'Custom Nodes Manager', find the one that is causing the problem and click on the 'Try fix' button. 
     - If you have a lot of custom nodes that are causing problems, there is another possible solution, but should only be use as a 'last resort', you can make a persistent venv by running the command `bash /make_venv.sh` in the terminal.

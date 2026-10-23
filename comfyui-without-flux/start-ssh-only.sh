@@ -13,11 +13,19 @@ then
     service ssh start
 fi
 
+# Everything started from here (ComfyUI, JupyterLab, AI-Toolkit, model downloads) creates
+# world-writable files and folders, so nothing ends up locked to one user
+umask 000
+
 # Move text-generation-webui's folder to $VOLUME so models and all config will persist
 /comfyui-on-workspace.sh
 
 # Move ai-toolkit's folder to $VOLUME so models and all config will persist
 /ai-toolkit-on-workspace.sh
+
+# Open up permissions on files already on the volume (from older images or other tools).
+# Runs in the background because it can take a while on a large volume.
+nice chmod -R a+rwX /workspace 2>/dev/null &
 
 # Fetch the public models that are not baked into the image straight to the volume, in the
 # background so they don't delay startup. Already-present files are skipped.
@@ -81,6 +89,9 @@ fi
 if [ ! -f /workspace/start_user.sh ]; then
     # If not, copy the original script to /workspace
     cp /start-original.sh /workspace/start_user.sh
+else
+    # Volumes from older images still call the removed Mixlab script
+    sed -i '/disable_mixlab.sh/d' /workspace/start_user.sh
 fi
 
 # Execute the user's script
