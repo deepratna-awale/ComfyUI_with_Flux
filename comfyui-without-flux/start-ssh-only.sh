@@ -17,6 +17,21 @@ fi
 # world-writable files and folders, so nothing ends up locked to one user
 umask 000
 
+# Start nginx and JupyterLab first: they don't depend on the volume layout, so they are usable
+# while ComfyUI is being copied to the volume on first boot.
+# Start nginx as reverse proxy to enable api access
+service nginx start
+
+# Start JupyterLab. Its URL on the RunPod proxy is public, so set JUPYTER_PASSWORD to protect it;
+# it is used as the login token. Left empty, JupyterLab opens without any login.
+if [[ -n "${JUPYTER_PASSWORD}" ]]; then
+    JUPYTER_TOKEN="${JUPYTER_PASSWORD}" jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' &
+    echo "JupyterLab started (login with JUPYTER_PASSWORD)"
+else
+    jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' --ServerApp.token='' --ServerApp.password='' &
+    echo "JupyterLab started without a login (JUPYTER_PASSWORD is not set)"
+fi
+
 # Move text-generation-webui's folder to $VOLUME so models and all config will persist
 /comfyui-on-workspace.sh
 
@@ -26,14 +41,6 @@ umask 000
 # Open up permissions on files already on the volume (from older images or other tools).
 # Runs in the background because it can take a while on a large volume.
 nice chmod -R a+rwX /workspace 2>/dev/null &
-
-# Fetch the public models that are not baked into the image straight to the volume, in the
-# background so they don't delay startup. Already-present files are skipped.
-echo "Starting background model downloads (log: /workspace/model_downloads.log)"
-/download_base_models.sh > /workspace/model_downloads.log 2>&1 &
-if [ -f /workspace/ComfyUI/models/diffusion_models/flux1-dev.sft ]; then
-    /download_flux_extras.sh >> /workspace/model_downloads.log 2>&1 &
-fi
 
 #!/bin/bash
 if [[ -z "${HF_TOKEN}" ]] || [[ "${HF_TOKEN}" == "enter_your_huggingface_token_here" ]]
@@ -48,7 +55,7 @@ fi
 if [ -d "/workspace/ai-toolkit/ui" ]; then
     echo "Starting AI-Toolkit UI in background on port 8675"
     cd /workspace/ai-toolkit/ui
-    if [ -d .next ] && [ -f dist/worker.js ]; then
+    if [ -d .next ] && { [ -f dist/cron/worker.js ] || [ -f dist/worker.js ]; }; then
         echo "Prebuilt artifacts found. Running: npm run start"
         nohup npm run start > /workspace/ai-toolkit/ui/server.log 2>&1 &
     else
@@ -60,27 +67,12 @@ else
     echo "AI-Toolkit UI directory not found at /workspace/ai-toolkit/ui; skipping UI startup"
 fi
 
-# Check and run the download scripts based on environment variables
-if [[ "${DOWNLOAD_WAN}" == "true" ]]; then
-    /download_wan2.1.sh
-fi
-
-if [[ "${DOWNLOAD_FLUX}" == "true" ]]; then
-    /download_Files.sh
-fi
-
-# Start nginx as reverse proxy to enable api access
-service nginx start
-
-# Start JupyterLab. Its URL on the RunPod proxy is public, so set JUPYTER_PASSWORD to protect it;
-# it is used as the login token. Left empty, JupyterLab opens without any login.
-if [[ -n "${JUPYTER_PASSWORD}" ]]; then
-    JUPYTER_TOKEN="${JUPYTER_PASSWORD}" jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' &
-    echo "JupyterLab started (login with JUPYTER_PASSWORD)"
-else
-    jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' --ServerApp.token='' --ServerApp.password='' &
-    echo "JupyterLab started without a login (JUPYTER_PASSWORD is not set)"
-fi
+# Fetch the selected model sets (by default Flux and what its workflows need, see
+# /download_selected.sh for the DOWNLOAD_* options) straight to the volume, in the background so
+# they don't delay startup. Already-present files are skipped and every file appears atomically
+# when complete.
+echo "Starting background model downloads (log: /workspace/model_downloads.log)"
+/download_selected.sh > /workspace/model_downloads.log 2>&1 &
 
 # Check if the flux model is present
 bash /check_files.sh

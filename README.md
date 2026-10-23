@@ -3,11 +3,46 @@
 ## Update 2026-10-22
 - **Faster deployment on RunPod**: the Docker images are a lot smaller (about 35% for the 'without Flux' image and about 30% for the 'with Flux' image), so pods pull and start faster.
     - Public models (SD1.5, inswapper, face detection, Flux text encoders, example LoRAs, openpose annotators) are no longer baked into the image. They are downloaded straight to the network volume in the background on first start (log: `/workspace/model_downloads.log`), so they also no longer need to be copied to the volume.
+    - **You choose which models are downloaded** with environment variables, see [Choosing which models to download](#choosing-which-models-to-download). By default only Flux and the models its workflows need are downloaded.
+    - Model downloads never block startup any more: ComfyUI, JupyterLab and the AI-Toolkit UI come up right away while the models download in the background, several files at a time and over multiple connections each.
     - Dropped the unused CUDA runtime libraries from the image (PyTorch ships its own) and the git history of all custom nodes.
     - AI-Toolkit's code now stays inside the image; only your configs, datasets, outputs and the UI database are persisted on the volume in `/workspace/ai-toolkit-data`. `/workspace/ai-toolkit` still works as before.
     - Removed the Mixlab nodes from the image (they were disabled at startup anyway).
 - **New environment variable `JUPYTER_PASSWORD`**: the login for JupyterLab. If it's left empty, JupyterLab opens without a login.
 - **Relaxed file permissions**: files and folders in the image and on `/workspace` can be written by every user and tool, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
+
+## Choosing which models to download
+
+On every pod start, the model sets you select are downloaded straight to the network volume in the background, all at the same time (log: `/workspace/model_downloads.log`). Files that are already on the volume are skipped, so after the first start only new selections are downloaded. ComfyUI starts right away; models show up in it as each file finishes (refresh the model list in the UI to see them).
+
+Set these as environment variables in the RunPod template, or when deploying a pod:
+
+| Environment variable | Default | Downloads |
+|---|---|---|
+| `DOWNLOAD_FLUX` | `true` | Flux.1-dev and Flux.1-Kontext-dev (needs `HF_TOKEN`, gated repo) plus the clip_l and t5xxl fp8 text encoders and the example LoRAs |
+| `DOWNLOAD_FLUX_EXTRAS` | `true` | Openpose annotators and the other Flux companion models, once the Flux model is on the volume |
+| `DOWNLOAD_BASE_MODELS` | `false` | SD 1.5, inswapper (FaceSwap) and the face detection model (Facedetailer) |
+| `DOWNLOAD_FLUX2` | `false` | Flux.2-dev fp8, its VAE and text encoder |
+| `DOWNLOAD_WAN` | `false` | Wan 2.1 text2video and image2video |
+| `DOWNLOAD_WAN22` | `false` | Wan 2.2 text2video and image2video |
+| `DOWNLOAD_INFINITETALK` | `false` | Wan 2.1 InfiniteTalk |
+| `DOWNLOAD_LTX2` | `false` | LTX2 |
+| `DOWNLOAD_LTX23` | `false` | LTX2.3 |
+| `DOWNLOAD_QWEN_FP8` | `false` | Qwen Image Edit (fp8) |
+| `DOWNLOAD_QWEN_BF16` | `false` | Qwen Image Edit (bf16) |
+| `DOWNLOAD_Z_IMAGE` | `false` | Z-Image Turbo |
+| `DOWNLOAD_CONTROLNET` | `false` | Flux and SDXL ControlNets, 4x-UltraSharp |
+| `DOWNLOAD_OUTPAINTING` | `false` | Outpainting models |
+| `DOWNLOAD_SUPIR` | `false` | SUPIR upscaler |
+| `DOWNLOAD_LDSR` | `false` | LDSR upscaler |
+| `DOWNLOAD_UPSCALERS` | `false` | 4x-UltraSharp |
+| `DOWNLOAD_FLORENCE2` | `false` | Florence-2 |
+| `DOWNLOAD_T5_FP16` | `false` | t5xxl fp16 text encoder |
+| `DOWNLOAD_VIBEVOICE` | `false` | VibeVoice Large and its tokenizer |
+
+Instead of one variable per set you can also list them in `DOWNLOAD_MODELS`, for example `DOWNLOAD_MODELS=wan2.2,ltx2.3`. The names are `flux`, `base`, `flux2`, `wan2.1`, `wan2.2`, `infinitetalk`, `ltx2`, `ltx2.3`, `qwen_fp8`, `qwen_bf16`, `z-image`, `controlnet`, `outpainting`, `supir`, `ldsr`, `upscalers`, `florence2`, `t5_fp16` and `vibevoice`; `all` selects every set.
+
+You can also download a set later from the terminal, e.g. `bash /download_LTX2.3.sh`, or run `DOWNLOAD_MODELS=ltx2.3 /download_selected.sh`. `DOWNLOAD_JOBS` (default 4) sets how many files download at once and `DOWNLOAD_CONNECTIONS` (default 8) how many connections each file uses.
 
 ## Update 2026-04-05
 - Added LTX2.3 workflows: I2V and FL2V
