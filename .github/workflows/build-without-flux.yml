@@ -1,0 +1,77 @@
+name: Build comfyui-without-flux image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [runpod-faster-deploy]
+    paths:
+      - "comfyui-without-flux/**"
+      - ".github/workflows/build-without-flux.yml"
+
+concurrency:
+  group: build-without-flux-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/comfyui-without-flux
+    steps:
+      # The image is ~8 GB compressed and the build needs ~45 GB of scratch space,
+      # far more than a hosted runner has free by default. Merge / and /mnt into one
+      # big volume and put Docker's data root on it.
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@v10
+        with:
+          root-reserve-mb: 6144
+          temp-reserve-mb: 1024
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+          build-mount-path: /var/lib/docker
+
+      - name: Restart Docker on the enlarged volume
+        run: |
+          sudo service docker restart
+          df -h /var/lib/docker
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image tags
+        id: tags
+        run: |
+          BRANCH="${GITHUB_REF_NAME//\//-}"
+          echo "tags=${IMAGE}:${BRANCH},${IMAGE}:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: comfyui-without-flux
+          file: comfyui-without-flux/Dockerfile
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          provenance: false
+
+      - name: Report
+        run: |
+          echo "Pushed: ${{ steps.tags.outputs.tags }}"
+          df -h /var/lib/docker
