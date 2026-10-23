@@ -128,6 +128,11 @@ RUN set -eux; cd /ai-toolkit/ui; \
     npm run update_db; \
     npm run build
 
+# Make everything users touch world-writable (dirs 777, files 666, executables stay executable) so
+# JupyterLab, ComfyUI-Manager and AI-Toolkit never hit "permission denied". Done here in the builder
+# because COPY --from keeps the modes, while a chmod -R in the runtime stage would duplicate every file.
+RUN chmod -R a+rwX /ComfyUI /ai-toolkit /opt/venv
+
 ###############################
 # Runtime stage
 ###############################
@@ -226,7 +231,6 @@ COPY --chmod=755 download_Qwen_bf16.sh /download_Qwen_bf16.sh
 COPY --chmod=755 download_Qwen_fp8.sh /download_Qwen_fp8.sh
 COPY --chmod=755 download_VibeVoice.sh /download_VibeVoice.sh
 COPY --chmod=755 download_z-image.sh /download_z-image.sh
-COPY --chmod=755 disable_mixlab.sh /disable_mixlab.sh
 COPY --chmod=755 download_LTX2.sh /download_LTX2.sh
 COPY --chmod=755 download_LTX2.3.sh /download_LTX2.3.sh
 
@@ -245,5 +249,8 @@ COPY --chmod=755 ai-toolkit/caption_images.py /caption_images.py
 
 # fix missing directory for old network volumes
 RUN mkdir -p /opt/venv/lib/python3.10/site-packages/comfyui_workflow_templates/templates
+
+# New files from interactive shells (JupyterLab terminals, SSH) are world-writable too
+RUN echo "umask 000" >> /etc/bash.bashrc && echo "umask 000" >> /etc/profile
 
 CMD [ "/start.sh" ]

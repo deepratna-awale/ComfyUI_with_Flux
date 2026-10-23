@@ -8,8 +8,8 @@ FROM valyriantech/comfyui-without-flux:latest
 #
 # Due to the fact that the models are in a gated repository, we need to download them separately BEFORE building this image and store them locally in a folder called flux
 # https://huggingface.co/black-forest-labs/FLUX.1-dev/blob/main/ae.sft
-COPY flux/ae.sft /ComfyUI/models/vae/
+COPY --chmod=666 flux/ae.sft /ComfyUI/models/vae/
 # https://huggingface.co/black-forest-labs/FLUX.1-dev/blob/main/flux1-dev.sft
-COPY flux/flux1-dev.sft /ComfyUI/models/diffusion_models/
+COPY --chmod=666 flux/flux1-dev.sft /ComfyUI/models/diffusion_models/
 
 CMD [ "/start.sh" ]

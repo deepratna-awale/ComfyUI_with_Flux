@@ -6,6 +6,8 @@
     - Dropped the unused CUDA runtime libraries from the image (PyTorch ships its own) and the git history of all custom nodes.
     - AI-Toolkit's code now stays inside the image; only your configs, datasets, outputs and the UI database are persisted on the volume in `/workspace/ai-toolkit-data`. `/workspace/ai-toolkit` still works as before.
     - Removed the Mixlab nodes from the image (they were disabled at startup anyway).
+- **New environment variable `JUPYTER_PASSWORD`**: the login for JupyterLab. If it's left empty, JupyterLab opens without a login.
+- **Relaxed file permissions**: files and folders in the image and on `/workspace` can be written by every user and tool, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
 
 ## Update 2026-04-05
 - Added LTX2.3 workflows: I2V and FL2V
@@ -72,7 +74,7 @@
     - websocket_image_save, ComfyUI-Florence2, ComfyUI-Logic, cg-use-everywhere, comfy-plasma, cg-image-picker, ComfyUI_JPS-Nodes,
     ComfyUI_essentials, ComfyUI-Flowty-LDSR, ComfyUI-VideoHelperSuite, ComfyUI-KJNodes, ComfyUI-Custom-Scripts, ComfyUI-Manager, 
     ComfyUI_UltimateSDUpscale, ComfyUI-AdvancedLivePortrait, x-flux-comfyui, rgthree-comfy, ComfyUI-Impact-Pack, ComfyUI_ComfyRoll_CustomNodes,
-    ComfyUI-SUPIR, was-node-suite-comfyui, comfyui_controlnet_aux, ComfyUI-Easy-Use, comfyui-reactor-node, ComfyUI_LayerStyle, comfyui-mixlab-nodes
+    ComfyUI-SUPIR, was-node-suite-comfyui, comfyui_controlnet_aux, ComfyUI-Easy-Use, comfyui-reactor-node, ComfyUI_LayerStyle
 
     - This should make the problems with 'IMPORT FAILED' less frequent. If you still encounter this problem when restarting a pod, you can go to the manager and click on 'Custom Nodes Manager', find the one that is causing the problem and click on the 'Try fix' button. 
     - If you have a lot of custom nodes that are causing problems, there is another possible solution, but should only be use as a 'last resort', you can make a persistent venv by running the command `bash /make_venv.sh` in the terminal.
@@ -132,13 +134,8 @@ If you want to use a different workflow, keep in mind you must use the API forma
 You can use JupyterLab to upload files to your pod, like custom LoRa models or other files.
 
 Click on the "Connect to HTTP Service [Port 8888]" button to open JupyterLab.
-You will be asked for a token, this will be different each time you deploy a new pod.
-
-The token can be seen in the logs of the runpod template:
-
-![JupyterLab token](https://github.com/ValyrianTech/ComfyUI_with_Flux/blob/main/JupyterLab_token.png?raw=true)
-
-Alternatively, you can start the web terminal and connect to it and enter the command "jupyter server list" to get the token.
+Set the `JUPYTER_PASSWORD` environment variable in the template to protect JupyterLab: you will be asked for a token, enter that password.
+If `JUPYTER_PASSWORD` is left empty, JupyterLab opens without any login. The pod's proxy URL is public, so anyone who has that URL then gets full access to the pod, including your HF_TOKEN and your files.
 
 Note: Due to a technical peculiarity in JupyterLab, the folder /ComfyUI/models/checkpoints will not open, because 'checkpoints' is a special word in JupyterLab.
 If you need to copy a file in this folder, you can still connect via the web terminal and use the 'wget' command to download your file.
