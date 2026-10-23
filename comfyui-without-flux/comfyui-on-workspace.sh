@@ -76,6 +76,11 @@ for item in models input output user; do
 	link_to_volume "$item"
 done
 
+# NFS network volumes enforce a directory's execute bit even for root, and older images left some
+# directories without one (e.g. user/). Fix them now, before ComfyUI starts, rather than relying on
+# the background chmod in start.sh.
+find "$DATA" -type d ! -perm -0111 -exec chmod a+rwx {} + 2>/dev/null
+
 # Keep /workspace/ComfyUI working for older scripts and start_user.sh files on the volume
 if [[ -L "$OLD" || ! -e "$OLD" ]]; then
 	ln -sfn /ComfyUI "$OLD"
