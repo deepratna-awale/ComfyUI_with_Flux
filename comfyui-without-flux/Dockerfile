@@ -157,6 +157,16 @@ RUN uv pip install "$(grep -iE '^av([<>=~ ]|$)' /ComfyUI/requirements.txt)"
 RUN chmod -R a+rwX /ComfyUI /opt/venv
 
 ###############################
+# Volume permissions shim stage
+###############################
+# Builds volume_perms_shim.c (see the runtime stage) on the same Ubuntu release, so it links
+# against the runtime's glibc.
+FROM ubuntu:22.04 AS perms-shim
+RUN apt-get update -y && apt-get install -y gcc libc6-dev && apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY volume_perms_shim.c /tmp/volume_perms_shim.c
+RUN gcc -O2 -Wall -shared -fPIC -o /volume_perms_shim.so /tmp/volume_perms_shim.c -ldl
+
+###############################
 # Runtime stage
 ###############################
 FROM ${DOCKER_FROM} AS runtime
@@ -300,5 +310,15 @@ RUN mkdir -p /opt/venv/lib/python3.10/site-packages/comfyui_workflow_templates/t
 
 # New files from interactive shells (JupyterLab terminals, SSH) are world-writable too
 RUN echo "umask 000" >> /etc/bash.bashrc && echo "umask 000" >> /etc/profile
+
+# The /workspace volume (NFS or MooseFS) refuses chmod and chown even for root, which makes
+# `git clone`/`git config` abort and cp -a, tar and rsync print errors there. The shim, preloaded
+# into every process, reports success for those calls on network filesystems only.
+COPY --from=perms-shim /volume_perms_shim.so /usr/local/lib/volume_perms_shim.so
+RUN echo /usr/local/lib/volume_perms_shim.so > /etc/ld.so.preload
+
+# Files on the volume can belong to another user (root squashed to nobody on NFS), which git
+# refuses with "detected dubious ownership". Trust every repository.
+RUN git config --system --add safe.directory '*'
 
 CMD [ "/start.sh" ]
