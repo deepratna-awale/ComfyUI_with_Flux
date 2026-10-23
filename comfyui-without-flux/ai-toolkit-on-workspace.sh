@@ -44,7 +44,7 @@ mkdir -p /workspace/training_set
 mkdir -p /workspace/LoRas
 
 # when trained using the UI, the result is stored in /workspace/ai-toolkit/output
-ln -s /workspace/ai-toolkit/output /workspace/ComfyUI/models/loras/flux_train_ui
+ln -sfn /workspace/ai-toolkit/output /workspace/ComfyUI/models/loras/flux_train_ui
 
 # when trained using the CLI, the result set is stored in /workspace/LoRas (don't put it in /workspace/ai-toolkit/output because it will create a symlink loop)
-ln -s /workspace/LoRas /workspace/ComfyUI/models/loras/ai-toolkit
+ln -sfn /workspace/LoRas /workspace/ComfyUI/models/loras/ai-toolkit

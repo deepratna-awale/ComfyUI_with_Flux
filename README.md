@@ -8,6 +8,7 @@
     - Dropped the unused CUDA runtime libraries from the image (PyTorch ships its own) and the git history of all custom nodes.
     - AI-Toolkit's code now stays inside the image; only your configs, datasets, outputs and the UI database are persisted on the volume in `/workspace/ai-toolkit-data`. `/workspace/ai-toolkit` still works as before.
     - Removed the Mixlab nodes from the image (they were disabled at startup anyway).
+    - **ComfyUI is no longer copied to the network volume.** Its code, the bundled custom nodes and the Python environment stay in the image, so the first start doesn't wait for a 1.5 GB copy and image updates actually take effect. Only your data lives on the volume, see [What is stored on the network volume](#what-is-stored-on-the-network-volume).
 - **New environment variable `JUPYTER_PASSWORD`**: the login for JupyterLab. If it's left empty, JupyterLab opens without a login.
 - **Relaxed file permissions**: files and folders in the image and on `/workspace` can be written by every user and tool, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
 
@@ -43,6 +44,28 @@ Set these as environment variables in the RunPod template, or when deploying a p
 Instead of one variable per set you can also list them in `DOWNLOAD_MODELS`, for example `DOWNLOAD_MODELS=wan2.2,ltx2.3`. The names are `flux`, `base`, `flux2`, `wan2.1`, `wan2.2`, `infinitetalk`, `ltx2`, `ltx2.3`, `qwen_fp8`, `qwen_bf16`, `z-image`, `controlnet`, `outpainting`, `supir`, `ldsr`, `upscalers`, `florence2`, `t5_fp16` and `vibevoice`; `all` selects every set.
 
 You can also download a set later from the terminal, e.g. `bash /download_LTX2.3.sh`, or run `DOWNLOAD_MODELS=ltx2.3 /download_selected.sh`. `DOWNLOAD_JOBS` (default 4) sets how many files download at once and `DOWNLOAD_CONNECTIONS` (default 8) how many connections each file uses.
+
+## What is stored on the network volume
+
+Only your own data is kept on the network volume. Everything else (ComfyUI's code, the custom nodes that come with the image, the Python environment, AI-Toolkit's code and UI, and caches like Hugging Face, torch hub and `__pycache__`) stays inside the image on the pod's local disk. It is faster there than on a network volume, and it is updated whenever you deploy a newer image.
+
+| On the volume | What it holds |
+|---|---|
+| `/workspace/comfyui-data/models` | All models. The download scripts and ComfyUI-Manager save here. |
+| `/workspace/comfyui-data/input` | ComfyUI's input folder (uploaded images, audio, video) |
+| `/workspace/comfyui-data/output` | ComfyUI's output folder |
+| `/workspace/comfyui-data/user` | Your workflows, ComfyUI settings and the ComfyUI-Manager config |
+| `/workspace/comfyui-data/custom_nodes` | Custom nodes you install yourself, e.g. with ComfyUI-Manager |
+| `/workspace/ai-toolkit-data` | AI-Toolkit configs, datasets, outputs and the UI database |
+| `/workspace/start_user.sh`, `/workspace/model_downloads.log` | Your startup script and the model download log |
+
+The old paths still work: `/ComfyUI/models`, `/ComfyUI/input`, `/ComfyUI/output` and `/ComfyUI/user` are links to the folders above, and `/workspace/ComfyUI` is a link to `/ComfyUI`. So `/workspace/ComfyUI/models/loras` is still where your LoRAs go.
+
+Custom nodes you install with ComfyUI-Manager are put in `/workspace/comfyui-data/custom_nodes`, and ComfyUI loads them next to the bundled ones (configured in `/ComfyUI/extra_model_paths.yaml`). Because the Python environment comes fresh with each pod, their `requirements.txt` is installed again on every start, before ComfyUI starts. If you update one of the bundled custom nodes, that update lasts until the pod is replaced; the next image brings its own version.
+
+The default workflows and example inputs that come with the image are added to the volume when they are missing. Files that are already there are never overwritten, so your edits are kept.
+
+**Volumes from older versions** that hold a full copy of ComfyUI in `/workspace/ComfyUI` are moved over automatically on the first start: `models`, `input`, `output` and `user` are moved into `/workspace/comfyui-data` (a quick rename, nothing is copied), and custom nodes you installed yourself go to `/workspace/comfyui-data/custom_nodes`. The rest of the old copy, the ComfyUI code and the bundled custom nodes, is moved to `/workspace/ComfyUI.old` and not deleted. Check it for anything you still need, then delete it to free up space. Once a volume has been moved over, don't use it with an older version of this image.
 
 ## Update 2026-04-05
 - Added LTX2.3 workflows: I2V and FL2V

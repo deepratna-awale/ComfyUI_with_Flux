@@ -197,6 +197,7 @@ COPY --from=builder /opt/venv /opt/venv
 COPY --chmod=755 start-ssh-only.sh /start.sh
 COPY --chmod=755 start-original.sh /start-original.sh
 COPY --chmod=755 comfyui-on-workspace.sh /comfyui-on-workspace.sh
+COPY --chmod=755 install_user_custom_nodes.sh /install_user_custom_nodes.sh
 COPY --chmod=755 ai-toolkit-on-workspace.sh /ai-toolkit-on-workspace.sh
 COPY --chmod=755 check_files.sh /check_files.sh
 COPY --chmod=755 download_lib.sh /download_lib.sh
@@ -205,6 +206,8 @@ COPY --chmod=755 download_base_models.sh /download_base_models.sh
 COPY --chmod=755 download_flux_extras.sh /download_flux_extras.sh
 
 # App configuration and assets
+# Loads the custom nodes you install yourself from the volume (see comfyui-on-workspace.sh)
+COPY --chmod=644 extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
 COPY --chmod=644 workflows/ /ComfyUI/user/default/workflows/
 COPY --chmod=644 comfy.settings.json /ComfyUI/user/default/comfy.settings.json
 COPY --chmod=644 character_sheet_example.png /ComfyUI/input/character_sheet_example.png
@@ -259,9 +262,9 @@ COPY --chmod=755 download_z-image.sh /download_z-image.sh
 COPY --chmod=755 download_LTX2.sh /download_LTX2.sh
 COPY --chmod=755 download_LTX2.3.sh /download_LTX2.3.sh
 
-# Model files are no longer baked into the image. Every file in the image is pulled and unpacked
-# by RunPod and then copied to the network volume on first boot, so a 2.5 GB set of public models
-# costs twice. /download_base_models.sh fetches them straight to the volume in the background on
+# Model files are no longer baked into the image. Every model file in the image is pulled and
+# unpacked by RunPod and then copied to the network volume on first boot, so a 2.5 GB set of public
+# models costs twice. /download_base_models.sh fetches them straight to the volume in the background on
 # first boot instead (see start.sh). Only the gated Flux files are still baked into the with-flux image.
 RUN mkdir -p /ComfyUI/models/ultralytics/bbox /ComfyUI/models/insightface /ComfyUI/models/checkpoints
 
