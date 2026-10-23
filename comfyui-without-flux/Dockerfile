@@ -3,121 +3,22 @@
 ARG DOCKER_FROM=nvidia/cuda:12.8.0-base-ubuntu22.04
 
 ###############################
-# Builder stage
+# AI-Toolkit UI stage
 ###############################
-FROM nvidia/cuda:12.8.0-devel-ubuntu22.04 AS builder
+# The UI only needs Node.js, so it is built in its own stage, which BuildKit runs at the same
+# time as the much longer Python builder stage. It is built on the runtime base image so the
+# natively compiled modules match the runtime's glibc.
+FROM ${DOCKER_FROM} AS aitk-ui
 
-# Install Python, git, and build dependencies for compiling wheels
 RUN apt-get update -y && \
-    apt-get install -y python3 python3-pip python3-venv python-is-python3 git git-lfs wget zip unzip curl \
-        build-essential pkg-config libcairo2-dev libsqlite3-dev && \
-    python3 -m pip install --upgrade pip && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Install Node.js 22 LTS for AI-Toolkit build-time needs
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
-    apt-get update -y && apt-get install -y nodejs && \
+    apt-get install -y git curl ca-certificates openssl python3 build-essential && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs && \
     npm -v && node -v && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create a virtual environment for all Python deps
-ENV VENV_PATH=/opt/venv
-RUN python3 -m venv ${VENV_PATH}
-ENV PATH="${VENV_PATH}/bin:${PATH}"
-
-# Install PyTorch with CUDA 12.8 in the venv
-RUN pip install --no-cache-dir -U torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 \
-    --index-url https://download.pytorch.org/whl/cu128
-
-# Clone ComfyUI and base requirements (shallow clones: git history only bloats the image)
-RUN git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git /ComfyUI && \
-    pip install --no-cache-dir -r /ComfyUI/requirements.txt && \
-    mkdir -p /ComfyUI/pysssss-workflows
-
-# JupyterLab (preserve original behavior)
-RUN pip install --no-cache-dir jupyterlab
-
-# Upgrade albumentations to latest to avoid update warnings at runtime
-RUN pip install --no-cache-dir -U albumentations
-
-# Pre-clone essential custom nodes and install their requirements
-RUN set -eux; cd /ComfyUI/custom_nodes; \
-    git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Manager.git; \
-    git clone --depth 1 https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git; \
-    git clone --depth 1 https://github.com/XLabs-AI/x-flux-comfyui.git; \
-    python /ComfyUI/custom_nodes/x-flux-comfyui/setup.py; \
-    git clone --depth 1 https://github.com/flowtyone/ComfyUI-Flowty-LDSR.git; \
-    pip install --no-cache-dir -r ComfyUI-Flowty-LDSR/requirements.txt; \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-SUPIR.git; \
-    pip install --no-cache-dir -r ComfyUI-SUPIR/requirements.txt; \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-KJNodes.git; \
-    pip install --no-cache-dir -r ComfyUI-KJNodes/requirements.txt; \
-    git clone --depth 1 https://github.com/rgthree/rgthree-comfy.git; \
-    pip install --no-cache-dir -r rgthree-comfy/requirements.txt; \
-    git clone --depth 1 https://github.com/JPS-GER/ComfyUI_JPS-Nodes.git; \
-    git clone --depth 1 https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git; \
-    git clone --depth 1 https://github.com/Jordach/comfy-plasma.git; \
-    git clone --depth 1 https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git; \
-    pip install --no-cache-dir -r ComfyUI-VideoHelperSuite/requirements.txt; \
-    git clone --depth 1 https://github.com/PowerHouseMan/ComfyUI-AdvancedLivePortrait.git; \
-    pip install --no-cache-dir -r ComfyUI-AdvancedLivePortrait/requirements.txt; \
-    git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Impact-Pack.git; \
-    pip install --no-cache-dir -r ComfyUI-Impact-Pack/requirements.txt; \
-    python /ComfyUI/custom_nodes/ComfyUI-Impact-Pack/install.py; \
-    git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Impact-Subpack; \
-    pip install --no-cache-dir -r ComfyUI-Impact-Subpack/requirements.txt; \
-    git clone --depth 1 https://github.com/Fannovel16/comfyui_controlnet_aux.git; \
-    pip install --no-cache-dir -r comfyui_controlnet_aux/requirements.txt; \
-    git clone --depth 1 --recursive --shallow-submodules https://github.com/ssitu/ComfyUI_UltimateSDUpscale; \
-    git clone --depth 1 https://github.com/yolain/ComfyUI-Easy-Use.git; \
-    pip install --no-cache-dir -r ComfyUI-Easy-Use/requirements.txt; \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-Florence2.git; \
-    pip install --no-cache-dir -r ComfyUI-Florence2/requirements.txt; \
-    mkdir -p /ComfyUI/models/LLM; \
-    git clone --depth 1 https://github.com/WASasquatch/was-node-suite-comfyui.git; \
-    pip install --no-cache-dir -r was-node-suite-comfyui/requirements.txt; \
-    git clone --depth 1 https://github.com/theUpsider/ComfyUI-Logic.git; \
-    git clone --depth 1 https://github.com/cubiq/ComfyUI_essentials.git; \
-    pip install --no-cache-dir -r ComfyUI_essentials/requirements.txt; \
-    git clone --depth 1 https://github.com/chrisgoringe/cg-image-picker.git; \
-    git clone --depth 1 https://github.com/chflame163/ComfyUI_LayerStyle.git; \
-    pip install --no-cache-dir -r ComfyUI_LayerStyle/requirements.txt; \
-    git clone --depth 1 https://codeberg.org/Gourieff/comfyui-reactor-node.git; \
-    pip install --no-cache-dir -r comfyui-reactor-node/requirements.txt; \
-    git clone --depth 1 https://github.com/chrisgoringe/cg-use-everywhere.git; \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-CogVideoXWrapper.git; \
-    pip install --no-cache-dir -r ComfyUI-CogVideoXWrapper/requirements.txt; \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-WanVideoWrapper.git; \
-    pip install --no-cache-dir -r ComfyUI-WanVideoWrapper/requirements.txt; \
-    pip install --no-cache-dir sageattention==1.0.6; \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-MelBandRoFormer.git; \
-    pip install --no-cache-dir -r ComfyUI-MelBandRoFormer/requirements.txt; \
-    git clone --depth 1 https://github.com/Fannovel16/ComfyUI-Frame-Interpolation.git; \
-    python /ComfyUI/custom_nodes/ComfyUI-Frame-Interpolation/install.py; \
-    git clone --depth 1 https://github.com/Enemyx-net/VibeVoice-ComfyUI.git; \
-    pip install --no-cache-dir -r VibeVoice-ComfyUI/requirements.txt && \
-    mkdir -p /ComfyUI/models/vibevoice/vvembed; \
-    git clone --depth 1 https://github.com/kijai/ComfyUI-segment-anything-2.git; \
-    git clone --depth 1 https://github.com/GACLove/ComfyUI-VFI.git; \
-    pip install --no-cache-dir -r ComfyUI-VFI/requirements.txt; \
-    git clone --depth 1 https://github.com/Lightricks/ComfyUI-LTXVideo.git; \
-    pip install --no-cache-dir -r ComfyUI-LTXVideo/requirements.txt; \
-    git clone --depth 1 https://github.com/Fictiverse/ComfyUI_Fictiverse.git; \
-    pip install --no-cache-dir -r ComfyUI_Fictiverse/requirements.txt
-
-# Clone and install AI-Toolkit
 RUN git clone --depth 1 https://github.com/ostris/ai-toolkit.git /ai-toolkit && \
-    cd /ai-toolkit && git submodule update --init --recursive --depth 1 && \
-    pip install --no-cache-dir -r requirements.txt
-
-# Pin mediapipe/controlnet-aux to tested stable combo (fixes AI-Toolkit issues)
-RUN pip uninstall -y mediapipe controlnet_aux && \
-    pip install --no-cache-dir mediapipe==0.10.14 controlnet-aux==0.0.10
-
-# AI-Toolkit pins av==16.0.1, but ComfyUI needs a newer PyAV (av>=17 for ColorPrimaries in
-# av.video.reformatter) and fails to start without it. Both share /opt/venv, so restore
-# ComfyUI's requirement after the AI-Toolkit install.
-RUN pip install --no-cache-dir "$(grep -iE '^av([<>=~ ]|$)' /ComfyUI/requirements.txt)"
+    cd /ai-toolkit && git submodule update --init --recursive --depth 1
 
 # Prebuild AI-Toolkit UI (install deps, init DB, and build)
 # The sqlite3 npm package ships a prebuilt binary that needs glibc 2.38, but Ubuntu 22.04 has
@@ -131,7 +32,129 @@ RUN set -eux; cd /ai-toolkit/ui; \
 # Make everything users touch world-writable (dirs 777, files 666, executables stay executable) so
 # JupyterLab, ComfyUI-Manager and AI-Toolkit never hit "permission denied". Done here in the builder
 # because COPY --from keeps the modes, while a chmod -R in the runtime stage would duplicate every file.
-RUN chmod -R a+rwX /ComfyUI /ai-toolkit /opt/venv
+RUN chmod -R a+rwX /ai-toolkit
+
+###############################
+# Builder stage
+###############################
+FROM nvidia/cuda:12.8.0-devel-ubuntu22.04 AS builder
+
+# Install Python, git, and build dependencies for compiling wheels
+RUN apt-get update -y && \
+    apt-get install -y python3 python3-pip python3-venv python-is-python3 git git-lfs wget zip unzip curl \
+        build-essential pkg-config libcairo2-dev && \
+    python3 -m pip install --upgrade pip && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create a virtual environment for all Python deps
+ENV VENV_PATH=/opt/venv
+RUN python3 -m venv ${VENV_PATH}
+ENV PATH="${VENV_PATH}/bin:${PATH}"
+
+# uv installs packages with parallel downloads and is much faster than pip. Point it at the venv,
+# and resolve across indexes the way pip does.
+RUN pip install --no-cache-dir uv
+ENV VIRTUAL_ENV=${VENV_PATH} UV_NO_CACHE=1 UV_INDEX_STRATEGY=unsafe-best-match
+
+# Install PyTorch with CUDA 12.8 in the venv
+RUN uv pip install -U torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 \
+    --index-url https://download.pytorch.org/whl/cu128
+
+# Clone ComfyUI and base requirements (shallow clones: git history only bloats the image)
+RUN git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git /ComfyUI && \
+    uv pip install -r /ComfyUI/requirements.txt && \
+    mkdir -p /ComfyUI/pysssss-workflows
+
+# JupyterLab (preserve original behavior)
+RUN uv pip install jupyterlab
+
+# Upgrade albumentations to latest to avoid update warnings at runtime
+RUN uv pip install -U albumentations
+
+# Pre-clone essential custom nodes (in parallel), then install their requirements in the original
+# order so later nodes still override the pins of earlier ones
+RUN set -eux; cd /ComfyUI/custom_nodes; \
+    git clone --depth 1 --recursive --shallow-submodules https://github.com/ssitu/ComfyUI_UltimateSDUpscale & \
+    printf '%s\n' \
+        https://github.com/ltdrdata/ComfyUI-Manager.git \
+        https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git \
+        https://github.com/XLabs-AI/x-flux-comfyui.git \
+        https://github.com/flowtyone/ComfyUI-Flowty-LDSR.git \
+        https://github.com/kijai/ComfyUI-SUPIR.git \
+        https://github.com/kijai/ComfyUI-KJNodes.git \
+        https://github.com/rgthree/rgthree-comfy.git \
+        https://github.com/JPS-GER/ComfyUI_JPS-Nodes.git \
+        https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git \
+        https://github.com/Jordach/comfy-plasma.git \
+        https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git \
+        https://github.com/PowerHouseMan/ComfyUI-AdvancedLivePortrait.git \
+        https://github.com/ltdrdata/ComfyUI-Impact-Pack.git \
+        https://github.com/ltdrdata/ComfyUI-Impact-Subpack \
+        https://github.com/Fannovel16/comfyui_controlnet_aux.git \
+        https://github.com/yolain/ComfyUI-Easy-Use.git \
+        https://github.com/kijai/ComfyUI-Florence2.git \
+        https://github.com/WASasquatch/was-node-suite-comfyui.git \
+        https://github.com/theUpsider/ComfyUI-Logic.git \
+        https://github.com/cubiq/ComfyUI_essentials.git \
+        https://github.com/chrisgoringe/cg-image-picker.git \
+        https://github.com/chflame163/ComfyUI_LayerStyle.git \
+        https://codeberg.org/Gourieff/comfyui-reactor-node.git \
+        https://github.com/chrisgoringe/cg-use-everywhere.git \
+        https://github.com/kijai/ComfyUI-CogVideoXWrapper.git \
+        https://github.com/kijai/ComfyUI-WanVideoWrapper.git \
+        https://github.com/kijai/ComfyUI-MelBandRoFormer.git \
+        https://github.com/Fannovel16/ComfyUI-Frame-Interpolation.git \
+        https://github.com/Enemyx-net/VibeVoice-ComfyUI.git \
+        https://github.com/kijai/ComfyUI-segment-anything-2.git \
+        https://github.com/GACLove/ComfyUI-VFI.git \
+        https://github.com/Lightricks/ComfyUI-LTXVideo.git \
+        https://github.com/Fictiverse/ComfyUI_Fictiverse.git \
+    | xargs -P 8 -n 1 git clone --depth 1; \
+    wait $!; \
+    python /ComfyUI/custom_nodes/x-flux-comfyui/setup.py; \
+    uv pip install -r ComfyUI-Flowty-LDSR/requirements.txt; \
+    uv pip install -r ComfyUI-SUPIR/requirements.txt; \
+    uv pip install -r ComfyUI-KJNodes/requirements.txt; \
+    uv pip install -r rgthree-comfy/requirements.txt; \
+    uv pip install -r ComfyUI-VideoHelperSuite/requirements.txt; \
+    uv pip install -r ComfyUI-AdvancedLivePortrait/requirements.txt; \
+    uv pip install -r ComfyUI-Impact-Pack/requirements.txt; \
+    python /ComfyUI/custom_nodes/ComfyUI-Impact-Pack/install.py; \
+    uv pip install -r ComfyUI-Impact-Subpack/requirements.txt; \
+    uv pip install -r comfyui_controlnet_aux/requirements.txt; \
+    uv pip install -r ComfyUI-Easy-Use/requirements.txt; \
+    uv pip install -r ComfyUI-Florence2/requirements.txt; \
+    mkdir -p /ComfyUI/models/LLM; \
+    uv pip install -r was-node-suite-comfyui/requirements.txt; \
+    uv pip install -r ComfyUI_essentials/requirements.txt; \
+    uv pip install -r ComfyUI_LayerStyle/requirements.txt; \
+    uv pip install -r comfyui-reactor-node/requirements.txt; \
+    uv pip install -r ComfyUI-CogVideoXWrapper/requirements.txt; \
+    uv pip install -r ComfyUI-WanVideoWrapper/requirements.txt; \
+    uv pip install sageattention==1.0.6; \
+    uv pip install -r ComfyUI-MelBandRoFormer/requirements.txt; \
+    python /ComfyUI/custom_nodes/ComfyUI-Frame-Interpolation/install.py; \
+    uv pip install -r VibeVoice-ComfyUI/requirements.txt; \
+    mkdir -p /ComfyUI/models/vibevoice/vvembed; \
+    uv pip install -r ComfyUI-VFI/requirements.txt; \
+    uv pip install -r ComfyUI-LTXVideo/requirements.txt; \
+    uv pip install -r ComfyUI_Fictiverse/requirements.txt
+
+# Install AI-Toolkit's Python requirements (the code itself comes from the aitk-ui stage)
+COPY --from=aitk-ui /ai-toolkit/requirements*.txt /tmp/ai-toolkit/
+RUN uv pip install -r /tmp/ai-toolkit/requirements.txt && rm -rf /tmp/ai-toolkit
+
+# Pin mediapipe/controlnet-aux to tested stable combo (fixes AI-Toolkit issues)
+RUN uv pip uninstall mediapipe controlnet_aux && \
+    uv pip install mediapipe==0.10.14 controlnet-aux==0.0.10
+
+# AI-Toolkit pins av==16.0.1, but ComfyUI needs a newer PyAV (av>=17 for ColorPrimaries in
+# av.video.reformatter) and fails to start without it. Both share /opt/venv, so restore
+# ComfyUI's requirement after the AI-Toolkit install.
+RUN uv pip install "$(grep -iE '^av([<>=~ ]|$)' /ComfyUI/requirements.txt)"
+
+# Same world-writable modes for the ComfyUI tree and the venv (see the aitk-ui stage)
+RUN chmod -R a+rwX /ComfyUI /opt/venv
 
 ###############################
 # Runtime stage
@@ -142,7 +165,7 @@ FROM ${DOCKER_FROM} AS runtime
 RUN apt-get update -y && \
     apt-get install -y python3 python3-pip python3-venv python-is-python3 \
         openssh-server openssh-client git git-lfs wget zip unzip curl vim \
-        nginx libgl1-mesa-glx libglib2.0-0 libsqlite3-0 \
+        nginx aria2 libgl1-mesa-glx libglib2.0-0 libsqlite3-0 \
         ffmpeg libavcodec-dev libavformat-dev libavutil-dev libswresample-dev && \
     python3 -m pip install --upgrade pip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -167,7 +190,7 @@ ENV PATH="/opt/venv/bin:/usr/local/cuda/bin:${PATH}"
 
 # Copy application tree and Python environment from builder
 COPY --from=builder /ComfyUI /ComfyUI
-COPY --from=builder /ai-toolkit /ai-toolkit
+COPY --from=aitk-ui /ai-toolkit /ai-toolkit
 COPY --from=builder /opt/venv /opt/venv
 
 # Startup and helper scripts
@@ -176,6 +199,8 @@ COPY --chmod=755 start-original.sh /start-original.sh
 COPY --chmod=755 comfyui-on-workspace.sh /comfyui-on-workspace.sh
 COPY --chmod=755 ai-toolkit-on-workspace.sh /ai-toolkit-on-workspace.sh
 COPY --chmod=755 check_files.sh /check_files.sh
+COPY --chmod=755 download_lib.sh /download_lib.sh
+COPY --chmod=755 download_selected.sh /download_selected.sh
 COPY --chmod=755 download_base_models.sh /download_base_models.sh
 COPY --chmod=755 download_flux_extras.sh /download_flux_extras.sh
 
