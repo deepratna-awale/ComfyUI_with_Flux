@@ -70,6 +70,11 @@ jobs:
           push: true
           tags: ${{ steps.tags.outputs.tags }}
           provenance: false
+          # Reuse unchanged layers (torch, custom nodes, AI-Toolkit UI) from the previous build, so
+          # a change to a script or workflow rebuilds in minutes instead of from scratch.
+          # mode=max also caches the builder stages, which the final image layers depend on.
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true,ignore-error=true
 
       - name: Report
         run: |
