@@ -209,6 +209,16 @@ COPY --chmod=755 download_selected.sh /download_selected.sh
 COPY --chmod=755 download_base_models.sh /download_base_models.sh
 COPY --chmod=755 download_flux_extras.sh /download_flux_extras.sh
 
+# JupyterLab: make folders named "checkpoints" (e.g. /ComfyUI/models/checkpoints) browsable.
+# Jupyter Server routes ".../checkpoints" URLs to its notebook-checkpoint API, which hides such
+# folders from the file browser. This small server extension routes existing folders normally.
+COPY --chmod=644 jupyter_checkpoints_dir_fix.py /tmp/jupyter_checkpoints_dir_fix.py
+RUN cp /tmp/jupyter_checkpoints_dir_fix.py "$(python -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')/" && \
+    rm /tmp/jupyter_checkpoints_dir_fix.py && \
+    mkdir -p /etc/jupyter/jupyter_server_config.d && \
+    echo '{"ServerApp": {"jpserver_extensions": {"jupyter_checkpoints_dir_fix": true}}}' \
+        > /etc/jupyter/jupyter_server_config.d/jupyter_checkpoints_dir_fix.json
+
 # App configuration and assets
 # Loads the custom nodes you install yourself from the volume (see comfyui-on-workspace.sh)
 COPY --chmod=644 extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml

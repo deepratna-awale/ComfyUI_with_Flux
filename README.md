@@ -195,8 +195,7 @@ Click on the "Connect to HTTP Service [Port 8888]" button to open JupyterLab.
 Set the `JUPYTER_PASSWORD` environment variable in the template to protect JupyterLab: you will be asked for a token, enter that password.
 If `JUPYTER_PASSWORD` is left empty, JupyterLab opens without any login. The pod's proxy URL is public, so anyone who has that URL then gets full access to the pod, including your HF_TOKEN and your files.
 
-Note: Due to a technical peculiarity in JupyterLab, the folder /ComfyUI/models/checkpoints will not open, because 'checkpoints' is a special word in JupyterLab.
-If you need to copy a file in this folder, you can still connect via the web terminal and use the 'wget' command to download your file.
+Note: JupyterLab normally cannot open folders named 'checkpoints' (such as /ComfyUI/models/checkpoints), because that word is reserved by its notebook-checkpoint API. This image includes a small server extension that works around it, so the folder opens like any other.
 
 ## Note
 Patience is a virtue! This template includes all the files needed to run ComfyUI with Flux.1-dev, so it is a big file. The deployment process should take about 15 minutes to complete. 
