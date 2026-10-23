@@ -114,6 +114,11 @@ RUN git clone --depth 1 https://github.com/ostris/ai-toolkit.git /ai-toolkit && 
 RUN pip uninstall -y mediapipe controlnet_aux && \
     pip install --no-cache-dir mediapipe==0.10.14 controlnet-aux==0.0.10
 
+# AI-Toolkit pins av==16.0.1, but ComfyUI needs a newer PyAV (av>=17 for ColorPrimaries in
+# av.video.reformatter) and fails to start without it. Both share /opt/venv, so restore
+# ComfyUI's requirement after the AI-Toolkit install.
+RUN pip install --no-cache-dir "$(grep -iE '^av([<>=~ ]|$)' /ComfyUI/requirements.txt)"
+
 # Prebuild AI-Toolkit UI (install deps, init DB, and build)
 # The sqlite3 npm package ships a prebuilt binary that needs glibc 2.38, but Ubuntu 22.04 has
 # 2.35 ("GLIBC_2.38 not found" at build and at runtime), so compile it against this image's glibc.
