@@ -13,11 +13,19 @@ then
     service ssh start
 fi
 
+# Everything started from here (ComfyUI, JupyterLab, AI-Toolkit, model downloads) creates
+# world-writable files and folders, so nothing ends up locked to one user
+umask 000
+
 # Move text-generation-webui's folder to $VOLUME so models and all config will persist
 /comfyui-on-workspace.sh
 
 # Move ai-toolkit's folder to $VOLUME so models and all config will persist
 /ai-toolkit-on-workspace.sh
+
+# Open up permissions on files already on the volume (from older images or other tools).
+# Runs in the background because it can take a while on a large volume.
+nice chmod -R a+rwX /workspace 2>/dev/null &
 
 # Fetch the public models that are not baked into the image straight to the volume, in the
 # background so they don't delay startup. Already-present files are skipped.
@@ -64,9 +72,15 @@ fi
 # Start nginx as reverse proxy to enable api access
 service nginx start
 
-# Start JupyterLab
-jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.allow_origin='*' &
-echo "JupyterLab started"
+# Start JupyterLab. Its URL on the RunPod proxy is public, so set JUPYTER_PASSWORD to protect it;
+# it is used as the login token. Left empty, JupyterLab opens without any login.
+if [[ -n "${JUPYTER_PASSWORD}" ]]; then
+    JUPYTER_TOKEN="${JUPYTER_PASSWORD}" jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' &
+    echo "JupyterLab started (login with JUPYTER_PASSWORD)"
+else
+    jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' --ServerApp.token='' --ServerApp.password='' &
+    echo "JupyterLab started without a login (JUPYTER_PASSWORD is not set)"
+fi
 
 # Check if the flux model is present
 bash /check_files.sh
@@ -81,6 +95,9 @@ fi
 if [ ! -f /workspace/start_user.sh ]; then
     # If not, copy the original script to /workspace
     cp /start-original.sh /workspace/start_user.sh
+else
+    # Volumes from older images still call the removed Mixlab script
+    sed -i '/disable_mixlab.sh/d' /workspace/start_user.sh
 fi
 
 # Execute the user's script
