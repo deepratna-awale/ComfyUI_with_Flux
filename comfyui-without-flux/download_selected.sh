@@ -60,11 +60,23 @@ selected() {
     fi
 }
 
+# start.sh passes FLUX_READY_FILE and starts ComfyUI once that file exists: right after the Flux set
+# (Flux, its VAE and the text encoders) is done, or right away when Flux is not selected.
+flux_ready() {
+    [[ -n "${FLUX_READY_FILE}" ]] && touch "${FLUX_READY_FILE}"
+}
+
+selected flux DOWNLOAD_FLUX || flux_ready
+
 for entry in "${SETS[@]}"; do
     read -r name var script <<< "$entry"
     if selected "$name" "$var"; then
         echo "Downloading model set '$name' ($script)"
-        ./"$script" &
+        if [[ "$name" == "flux" ]]; then
+            { ./"$script"; echo "Model set 'flux' done."; flux_ready; } &
+        else
+            ./"$script" &
+        fi
     fi
 done
 wait
