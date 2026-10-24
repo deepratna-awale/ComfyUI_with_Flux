@@ -17,6 +17,11 @@ fi
 # world-writable files and folders, so nothing ends up locked to one user
 umask 000
 
+# The Civitai downloader node (Model Batch Downloader) reads CIVITAI_API_TOKEN; accept CAI_API_KEY too
+if [[ -z "${CIVITAI_API_TOKEN}" && -n "${CAI_API_KEY}" ]]; then
+    export CIVITAI_API_TOKEN="${CAI_API_KEY}"
+fi
+
 # Start nginx and JupyterLab first: they don't depend on the volume layout, so they are usable
 # while the volume is being set up.
 # Start nginx as reverse proxy to enable api access
