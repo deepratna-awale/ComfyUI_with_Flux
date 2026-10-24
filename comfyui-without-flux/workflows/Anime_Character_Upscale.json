@@ -1,0 +1,2595 @@
+{
+  "last_node_id": 67,
+  "last_link_id": 63,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LoadImage",
+      "pos": [
+        40,
+        120
+      ],
+      "size": [
+        320,
+        360
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "example.png",
+        "image"
+      ],
+      "title": "Load Image (one picture)"
+    },
+    {
+      "id": 2,
+      "type": "LoadImageListFromDir //Inspire",
+      "pos": [
+        40,
+        520
+      ],
+      "size": [
+        320,
+        170
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 2,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2
+          ],
+          "shape": 6
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "shape": 6
+        },
+        {
+          "name": "FILE PATH",
+          "type": "STRING",
+          "links": [],
+          "shape": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImageListFromDir //Inspire"
+      },
+      "widgets_values": [
+        "/workspace/comfyui-data/input/character_upscale",
+        0,
+        0,
+        false,
+        "None"
+      ],
+      "title": "Load Folder (unmute for a folder, mute Load Image)"
+    },
+    {
+      "id": 3,
+      "type": "Any Switch (rgthree)",
+      "pos": [
+        400,
+        300
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "any_01",
+          "type": "*",
+          "link": 1
+        },
+        {
+          "name": "any_02",
+          "type": "*",
+          "link": 2
+        },
+        {
+          "name": "any_03",
+          "type": "*",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "*",
+          "type": "*",
+          "links": [
+            4,
+            5,
+            13,
+            15,
+            36,
+            40,
+            42
+          ],
+          "label": "IMAGE"
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "Any Switch (rgthree)"
+      },
+      "widgets_values": [],
+      "title": "Image"
+    },
+    {
+      "id": 5,
+      "type": "StringConstantMultiline",
+      "pos": [
+        40,
+        730
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            17
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StringConstantMultiline"
+      },
+      "widgets_values": [
+        "",
+        true
+      ],
+      "title": "Series hint (optional, e.g. Sousou no Frieren)"
+    },
+    {
+      "id": 10,
+      "type": "UltralyticsDetectorProvider",
+      "pos": [
+        680,
+        80
+      ],
+      "size": [
+        320,
+        80
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "BBOX_DETECTOR",
+          "type": "BBOX_DETECTOR",
+          "links": [
+            3,
+            61
+          ]
+        },
+        {
+          "name": "SEGM_DETECTOR",
+          "type": "SEGM_DETECTOR",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UltralyticsDetectorProvider"
+      },
+      "widgets_values": [
+        "bbox/face_yolov8m.pt"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "BboxDetectorSEGS",
+      "pos": [
+        680,
+        200
+      ],
+      "size": [
+        320,
+        200
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "bbox_detector",
+          "type": "BBOX_DETECTOR",
+          "link": 3
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 4
+        },
+        {
+          "name": "detailer_hook",
+          "type": "DETAILER_HOOK",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SEGS",
+          "type": "SEGS",
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BboxDetectorSEGS"
+      },
+      "widgets_values": [
+        0.5,
+        10,
+        1.6,
+        10,
+        "all"
+      ],
+      "title": "Detect faces"
+    },
+    {
+      "id": 12,
+      "type": "GetImageSize",
+      "pos": [
+        680,
+        440
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "links": [
+            6
+          ]
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": [
+            7
+          ]
+        },
+        {
+          "name": "batch_size",
+          "type": "INT",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GetImageSize"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 13,
+      "type": "SolidMask",
+      "pos": [
+        680,
+        560
+      ],
+      "size": [
+        220,
+        110
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 6
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SolidMask"
+      },
+      "widgets_values": [
+        1.0,
+        512,
+        512
+      ],
+      "title": "Whole picture (used when no face)"
+    },
+    {
+      "id": 14,
+      "type": "MaskToSEGS",
+      "pos": [
+        680,
+        700
+      ],
+      "size": [
+        260,
+        180
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 8
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SEGS",
+          "type": "SEGS",
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MaskToSEGS"
+      },
+      "widgets_values": [
+        false,
+        1.0,
+        false,
+        1,
+        false
+      ]
+    },
+    {
+      "id": 15,
+      "type": "ImpactSEGSConcat",
+      "pos": [
+        1040,
+        200
+      ],
+      "size": [
+        220,
+        80
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "segs1",
+          "type": "SEGS",
+          "link": 9
+        },
+        {
+          "name": "segs2",
+          "type": "SEGS",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SEGS",
+          "type": "SEGS",
+          "links": [
+            11
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImpactSEGSConcat"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 16,
+      "type": "ImpactSEGSOrderedFilter",
+      "pos": [
+        1040,
+        320
+      ],
+      "size": [
+        300,
+        160
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "segs",
+          "type": "SEGS",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "filtered_SEGS",
+          "type": "SEGS",
+          "links": [
+            12
+          ]
+        },
+        {
+          "name": "remained_SEGS",
+          "type": "SEGS",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImpactSEGSOrderedFilter"
+      },
+      "widgets_values": [
+        "area(=w*h)",
+        false,
+        0,
+        1
+      ],
+      "title": "Smallest = the face (whole picture if none)"
+    },
+    {
+      "id": 17,
+      "type": "SEGSPreview",
+      "pos": [
+        1040,
+        520
+      ],
+      "size": [
+        300,
+        300
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "segs",
+          "type": "SEGS",
+          "link": 12
+        },
+        {
+          "name": "fallback_image_opt",
+          "type": "IMAGE",
+          "link": 13,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            14
+          ],
+          "shape": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SEGSPreview"
+      },
+      "widgets_values": [
+        false,
+        0.0
+      ],
+      "title": "Face crop"
+    },
+    {
+      "id": 18,
+      "type": "ImageConcanate",
+      "pos": [
+        1380,
+        520
+      ],
+      "size": [
+        300,
+        120
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image1",
+          "type": "COMFY_MATCHTYPE_V3",
+          "link": 14
+        },
+        {
+          "name": "image2",
+          "type": "IMAGE,MASK",
+          "link": 15
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "COMFY_MATCHTYPE_V3",
+          "links": [
+            18
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageConcanate"
+      },
+      "widgets_values": [
+        "right",
+        true
+      ],
+      "title": "Face crop + full picture"
+    },
+    {
+      "id": 19,
+      "type": "StringConstantMultiline",
+      "pos": [
+        1380,
+        80
+      ],
+      "size": [
+        420,
+        300
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            16
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StringConstantMultiline"
+      },
+      "widgets_values": [
+        "The left part of this picture is a close crop of the main character's face, the right part is the full picture. Identify the character, their facial expression and what they are doing.\nReply with ONE line of comma-separated Danbooru tags and nothing else, in this order:\n1. the character's Danbooru tag, with the series qualifier when Danbooru uses one, e.g. rem (re:zero)\n2. the series' Danbooru copyright tag\n3. facial expression tags\n4. tags for the pose and what they are doing\n5. visible hair, eye and outfit tags\nUse lowercase, spaces instead of underscores, and escape parentheses as \\( and \\). If the character is original or you cannot tell, start with: original, original",
+        false
+      ],
+      "title": "Grok instructions"
+    },
+    {
+      "id": 20,
+      "type": "JoinStrings",
+      "pos": [
+        1380,
+        400
+      ],
+      "size": [
+        420,
+        80
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "string1",
+          "type": "STRING",
+          "link": 16,
+          "shape": 7
+        },
+        {
+          "name": "string2",
+          "type": "STRING",
+          "link": 17,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            19
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "JoinStrings"
+      },
+      "widgets_values": [
+        "\nThe user says the series is (may be empty): "
+      ]
+    },
+    {
+      "id": 21,
+      "type": "GrokVisionCaption",
+      "pos": [
+        1840,
+        80
+      ],
+      "size": [
+        380,
+        560
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 18
+        },
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "name": "caption",
+          "type": "STRING",
+          "links": [
+            20,
+            21,
+            28,
+            49
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GrokVisionCaption"
+      },
+      "widgets_values": [
+        "Write a straightforward, factual caption for this image. Begin with the main subject. Describe people, pose, actions, state of dress, objects and setting in concrete, definite language. Include camera framing (shot type, angle) and concrete lighting. Omit mood, atmosphere, aesthetic judgments, image quality and meta phrases. Output only the caption.",
+        "You are an expert on anime, manga and game characters and on Danbooru tagging. You answer with tags only, never with sentences.",
+        "grok-4.7",
+        0.2,
+        1.0,
+        0.0,
+        0.0,
+        512,
+        0,
+        "fixed",
+        0,
+        1536,
+        "jpeg",
+        "",
+        "grok_api_key.txt",
+        "https://api.x.ai/v1",
+        false,
+        180
+      ],
+      "title": "Grok Vision (XAI_API_KEY)"
+    },
+    {
+      "id": 22,
+      "type": "ShowText|pysssss",
+      "pos": [
+        2260,
+        80
+      ],
+      "size": [
+        380,
+        260
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 20
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [],
+          "shape": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [],
+      "title": "Grok tags"
+    },
+    {
+      "id": 30,
+      "type": "CivitaiLoraSearch",
+      "pos": [
+        1840,
+        700
+      ],
+      "size": [
+        380,
+        160
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "tags",
+          "type": "STRING",
+          "link": 21
+        }
+      ],
+      "outputs": [
+        {
+          "name": "manifest_json",
+          "type": "STRING",
+          "links": [
+            22
+          ]
+        },
+        {
+          "name": "trigger_words",
+          "type": "STRING",
+          "links": [
+            48
+          ]
+        },
+        {
+          "name": "civitai_url",
+          "type": "STRING",
+          "links": [
+            23
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CivitaiLoraSearch"
+      },
+      "widgets_values": [
+        "Illustrious",
+        "character_lora",
+        "https://civitai.red/api/download/models/1839268"
+      ],
+      "title": "Civitai LoRA Search"
+    },
+    {
+      "id": 31,
+      "type": "ModelBatchDownloaderJSON",
+      "pos": [
+        2260,
+        700
+      ],
+      "size": [
+        380,
+        120
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "passthrough",
+          "type": "*",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "manifest_json",
+          "type": "STRING",
+          "widget": {
+            "name": "manifest_json"
+          },
+          "link": 22
+        }
+      ],
+      "outputs": [
+        {
+          "name": "passthrough",
+          "type": "*",
+          "links": []
+        },
+        {
+          "name": "download_result",
+          "type": "DOWNLOAD_RESULT",
+          "links": [
+            27
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ModelBatchDownloaderJSON"
+      },
+      "widgets_values": [
+        "[]"
+      ],
+      "title": "Download LoRA (CIVITAI_API_TOKEN)"
+    },
+    {
+      "id": 32,
+      "type": "ModelBatchDownloaderLoRALoader",
+      "pos": [
+        2260,
+        880
+      ],
+      "size": [
+        380,
+        160
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 25
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 26
+        },
+        {
+          "name": "download_result",
+          "type": "DOWNLOAD_RESULT",
+          "link": 27
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            56
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            53,
+            57
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ModelBatchDownloaderLoRALoader"
+      },
+      "widgets_values": [
+        "character_lora",
+        0.8,
+        0.8
+      ],
+      "title": "Load character LoRA"
+    },
+    {
+      "id": 33,
+      "type": "ShowText|pysssss",
+      "pos": [
+        1840,
+        900
+      ],
+      "size": [
+        380,
+        120
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 23
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [],
+          "shape": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [],
+      "title": "LoRA page"
+    },
+    {
+      "id": 40,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        40,
+        1160
+      ],
+      "size": [
+        320,
+        100
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            25,
+            38
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            26,
+            31,
+            32
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            37,
+            46,
+            58
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "waiIllustriousSDXL_v170.safetensors"
+      ],
+      "title": "Checkpoint (Illustrious)"
+    },
+    {
+      "id": 41,
+      "type": "UpscaleModelLoader",
+      "pos": [
+        40,
+        1300
+      ],
+      "size": [
+        320,
+        60
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "UPSCALE_MODEL",
+          "type": "UPSCALE_MODEL",
+          "links": [
+            47
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UpscaleModelLoader"
+      },
+      "widgets_values": [
+        "4x-UltraSharp.pth"
+      ]
+    },
+    {
+      "id": 42,
+      "type": "ControlNetLoader",
+      "pos": [
+        40,
+        1400
+      ],
+      "size": [
+        320,
+        60
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CONTROL_NET",
+          "type": "CONTROL_NET",
+          "links": [
+            24
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ControlNetLoader"
+      },
+      "widgets_values": [
+        "xinsir_controlnet_union-sdxl-1-promax.safetensors"
+      ]
+    },
+    {
+      "id": 43,
+      "type": "SetUnionControlNetType",
+      "pos": [
+        40,
+        1500
+      ],
+      "size": [
+        320,
+        60
+      ],
+      "flags": {},
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "control_net",
+          "type": "CONTROL_NET",
+          "link": 24
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONTROL_NET",
+          "type": "CONTROL_NET",
+          "links": [
+            35
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SetUnionControlNetType"
+      },
+      "widgets_values": [
+        "tile"
+      ]
+    },
+    {
+      "id": 44,
+      "type": "IPAdapterModelLoader",
+      "pos": [
+        40,
+        1600
+      ],
+      "size": [
+        320,
+        60
+      ],
+      "flags": {},
+      "order": 25,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IPADAPTER",
+          "type": "IPADAPTER",
+          "links": [
+            39
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "IPAdapterModelLoader"
+      },
+      "widgets_values": [
+        "ip-adapter-plus_sdxl_vit-h.safetensors"
+      ]
+    },
+    {
+      "id": 45,
+      "type": "CLIPVisionLoader",
+      "pos": [
+        40,
+        1700
+      ],
+      "size": [
+        320,
+        60
+      ],
+      "flags": {},
+      "order": 26,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP_VISION",
+          "type": "CLIP_VISION",
+          "links": [
+            41
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPVisionLoader"
+      },
+      "widgets_values": [
+        "clip_vision_h.safetensors"
+      ]
+    },
+    {
+      "id": 50,
+      "type": "StringConstantMultiline",
+      "pos": [
+        680,
+        1160
+      ],
+      "size": [
+        320,
+        120
+      ],
+      "flags": {},
+      "order": 27,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            29
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StringConstantMultiline"
+      },
+      "widgets_values": [
+        "masterpiece, best quality, amazing quality, very aesthetic, absurdres, highres, ultra-detailed, intricate details, sharp focus",
+        true
+      ],
+      "title": "Upscale quality tags"
+    },
+    {
+      "id": 51,
+      "type": "JoinStrings",
+      "pos": [
+        1040,
+        1160
+      ],
+      "size": [
+        300,
+        80
+      ],
+      "flags": {},
+      "order": 28,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "string1",
+          "type": "STRING",
+          "link": 28,
+          "shape": 7
+        },
+        {
+          "name": "string2",
+          "type": "STRING",
+          "link": 29,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            30
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "JoinStrings"
+      },
+      "widgets_values": [
+        ", "
+      ]
+    },
+    {
+      "id": 52,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1380,
+        1160
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 29,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 31
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": 30
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            33
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "title": "Positive"
+    },
+    {
+      "id": 53,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1380,
+        1300
+      ],
+      "size": [
+        300,
+        160
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 32
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            34,
+            60
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "lowres, worst quality, low quality, bad anatomy, bad hands, extra digits, fewer digits, jpeg artifacts, blurry, signature, watermark, username, text, error, deformed face, ugly"
+      ],
+      "title": "Negative"
+    },
+    {
+      "id": 54,
+      "type": "ControlNetApplyAdvanced",
+      "pos": [
+        1720,
+        1160
+      ],
+      "size": [
+        300,
+        190
+      ],
+      "flags": {},
+      "order": 31,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 33
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 34
+        },
+        {
+          "name": "control_net",
+          "type": "CONTROL_NET",
+          "link": 35
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 36
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 37,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            44
+          ]
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "links": [
+            45
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ControlNetApplyAdvanced"
+      },
+      "widgets_values": [
+        0.6,
+        0.0,
+        0.9
+      ],
+      "title": "Tile ControlNet"
+    },
+    {
+      "id": 55,
+      "type": "IPAdapterAdvanced",
+      "pos": [
+        1040,
+        1300
+      ],
+      "size": [
+        300,
+        280
+      ],
+      "flags": {},
+      "order": 32,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 38
+        },
+        {
+          "name": "ipadapter",
+          "type": "IPADAPTER",
+          "link": 39
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 40
+        },
+        {
+          "name": "image_negative",
+          "type": "IMAGE",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "attn_mask",
+          "type": "MASK",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "clip_vision",
+          "type": "CLIP_VISION",
+          "link": 41,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            43
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "IPAdapterAdvanced"
+      },
+      "widgets_values": [
+        0.4,
+        "linear",
+        "concat",
+        0.0,
+        1.0,
+        "V only"
+      ],
+      "title": "IPAdapter (keeps the original look)"
+    },
+    {
+      "id": 56,
+      "type": "UltimateSDUpscale",
+      "pos": [
+        2060,
+        1160
+      ],
+      "size": [
+        320,
+        620
+      ],
+      "flags": {},
+      "order": 33,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 42
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 43
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 44
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 45
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 46
+        },
+        {
+          "name": "upscale_model",
+          "type": "UPSCALE_MODEL",
+          "link": 47
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            55,
+            63
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UltimateSDUpscale"
+      },
+      "widgets_values": [
+        2.0,
+        1,
+        "fixed",
+        20,
+        5.0,
+        "euler_ancestral",
+        "normal",
+        0.35,
+        "Linear",
+        1024,
+        1024,
+        16,
+        64,
+        "None",
+        0.3,
+        64,
+        16,
+        32,
+        true,
+        false,
+        1
+      ],
+      "title": "Ultimate SD Upscale (2x)"
+    },
+    {
+      "id": 60,
+      "type": "StringConstantMultiline",
+      "pos": [
+        680,
+        1860
+      ],
+      "size": [
+        320,
+        120
+      ],
+      "flags": {},
+      "order": 34,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            51
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StringConstantMultiline"
+      },
+      "widgets_values": [
+        "masterpiece, best quality, amazing quality, very aesthetic, absurdres, detailed face, beautiful detailed eyes",
+        true
+      ],
+      "title": "Face quality tags"
+    },
+    {
+      "id": 61,
+      "type": "JoinStrings",
+      "pos": [
+        1040,
+        1860
+      ],
+      "size": [
+        300,
+        80
+      ],
+      "flags": {},
+      "order": 35,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "string1",
+          "type": "STRING",
+          "link": 48,
+          "shape": 7
+        },
+        {
+          "name": "string2",
+          "type": "STRING",
+          "link": 49,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            50
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "JoinStrings"
+      },
+      "widgets_values": [
+        ", "
+      ],
+      "title": "trigger words + Grok tags"
+    },
+    {
+      "id": 62,
+      "type": "JoinStrings",
+      "pos": [
+        1040,
+        1980
+      ],
+      "size": [
+        300,
+        80
+      ],
+      "flags": {},
+      "order": 36,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "string1",
+          "type": "STRING",
+          "link": 50,
+          "shape": 7
+        },
+        {
+          "name": "string2",
+          "type": "STRING",
+          "link": 51,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            52,
+            54
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "JoinStrings"
+      },
+      "widgets_values": [
+        ", "
+      ],
+      "title": "+ quality tags"
+    },
+    {
+      "id": 63,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1380,
+        1860
+      ],
+      "size": [
+        300,
+        100
+      ],
+      "flags": {},
+      "order": 37,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 53
+        },
+        {
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": 52
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            59
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        ""
+      ],
+      "title": "Face positive (LoRA clip)"
+    },
+    {
+      "id": 64,
+      "type": "FaceDetailer",
+      "pos": [
+        2060,
+        1860
+      ],
+      "size": [
+        340,
+        900
+      ],
+      "flags": {},
+      "order": 38,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 55
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 56
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 57
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 58
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 59
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 60
+        },
+        {
+          "name": "bbox_detector",
+          "type": "BBOX_DETECTOR",
+          "link": 61
+        },
+        {
+          "name": "sam_model_opt",
+          "type": "SAM_MODEL",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "segm_detector_opt",
+          "type": "SEGM_DETECTOR",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "detailer_hook",
+          "type": "DETAILER_HOOK",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "scheduler_func_opt",
+          "type": "SCHEDULER_FUNC",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            62
+          ]
+        },
+        {
+          "name": "cropped_refined",
+          "type": "IMAGE",
+          "links": [],
+          "shape": 6
+        },
+        {
+          "name": "cropped_enhanced_alpha",
+          "type": "IMAGE",
+          "links": [],
+          "shape": 6
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "links": []
+        },
+        {
+          "name": "detailer_pipe",
+          "type": "DETAILER_PIPE",
+          "links": []
+        },
+        {
+          "name": "cnet_images",
+          "type": "IMAGE",
+          "links": [],
+          "shape": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "FaceDetailer"
+      },
+      "widgets_values": [
+        1024,
+        true,
+        1536,
+        2,
+        "fixed",
+        25,
+        5.0,
+        "euler_ancestral",
+        "normal",
+        0.45,
+        5,
+        true,
+        true,
+        0.5,
+        10,
+        3.0,
+        "center-1",
+        0,
+        0.93,
+        0,
+        0.7,
+        "False",
+        10,
+        "",
+        1,
+        false,
+        20,
+        false,
+        false
+      ],
+      "title": "FaceDetailer (character LoRA)"
+    },
+    {
+      "id": 65,
+      "type": "SaveImage",
+      "pos": [
+        2440,
+        1160
+      ],
+      "size": [
+        520,
+        600
+      ],
+      "flags": {},
+      "order": 39,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 62
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "character_upscale/upscaled"
+      ]
+    },
+    {
+      "id": 66,
+      "type": "PreviewImage",
+      "pos": [
+        2440,
+        1860
+      ],
+      "size": [
+        520,
+        500
+      ],
+      "flags": {},
+      "order": 40,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 63
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "title": "Before the face pass"
+    },
+    {
+      "id": 67,
+      "type": "ShowText|pysssss",
+      "pos": [
+        1380,
+        2000
+      ],
+      "size": [
+        300,
+        160
+      ],
+      "flags": {},
+      "order": 41,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 54
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [],
+          "shape": 6
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [],
+      "title": "Face prompt"
+    },
+    {
+      "id": 4,
+      "type": "MarkdownNote",
+      "pos": [
+        40,
+        860
+      ],
+      "size": [
+        320,
+        280
+      ],
+      "flags": {},
+      "order": 42,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "## Anime Character Upscale\n\n1. Crops the face and asks **Grok** who the character is, their expression and what they are doing.\n2. Finds that character's **LoRA on Civitai** and downloads it (once).\n3. Upscales 2x with **tile ControlNet + IPAdapter + Ultimate SD Upscale**.\n4. Re-renders the face with **FaceDetailer** and the character LoRA.\n\n**Keys** (environment variables, never typed here): `XAI_API_KEY` for Grok, `CIVITAI_API_TOKEN` (or `CAI_API_KEY`) for Civitai.\n\n**One picture:** pick it in *Load Image* and queue.\n**A folder:** mute *Load Image* (Ctrl+M), unmute *Load Folder*, set its directory, queue once. Every picture gets its own character and LoRA.\n\nThe series hint is optional. When no character LoRA is found, Face Enhancer Illustrious is used instead.\nModels: set `DOWNLOAD_CHARACTER_UPSCALE=true` or run `/download_CharacterUpscale.sh`."
+      ],
+      "title": "How to use"
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      3,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      1,
+      "IMAGE"
+    ],
+    [
+      3,
+      10,
+      0,
+      11,
+      0,
+      "BBOX_DETECTOR"
+    ],
+    [
+      4,
+      3,
+      0,
+      11,
+      1,
+      "IMAGE"
+    ],
+    [
+      5,
+      3,
+      0,
+      12,
+      0,
+      "IMAGE"
+    ],
+    [
+      6,
+      12,
+      0,
+      13,
+      0,
+      "INT"
+    ],
+    [
+      7,
+      12,
+      1,
+      13,
+      1,
+      "INT"
+    ],
+    [
+      8,
+      13,
+      0,
+      14,
+      0,
+      "MASK"
+    ],
+    [
+      9,
+      11,
+      0,
+      15,
+      0,
+      "SEGS"
+    ],
+    [
+      10,
+      14,
+      0,
+      15,
+      1,
+      "SEGS"
+    ],
+    [
+      11,
+      15,
+      0,
+      16,
+      0,
+      "SEGS"
+    ],
+    [
+      12,
+      16,
+      0,
+      17,
+      0,
+      "SEGS"
+    ],
+    [
+      13,
+      3,
+      0,
+      17,
+      1,
+      "IMAGE"
+    ],
+    [
+      14,
+      17,
+      0,
+      18,
+      0,
+      "IMAGE"
+    ],
+    [
+      15,
+      3,
+      0,
+      18,
+      1,
+      "IMAGE"
+    ],
+    [
+      16,
+      19,
+      0,
+      20,
+      0,
+      "STRING"
+    ],
+    [
+      17,
+      5,
+      0,
+      20,
+      1,
+      "STRING"
+    ],
+    [
+      18,
+      18,
+      0,
+      21,
+      0,
+      "IMAGE"
+    ],
+    [
+      19,
+      20,
+      0,
+      21,
+      1,
+      "STRING"
+    ],
+    [
+      20,
+      21,
+      0,
+      22,
+      0,
+      "STRING"
+    ],
+    [
+      21,
+      21,
+      0,
+      30,
+      0,
+      "STRING"
+    ],
+    [
+      22,
+      30,
+      0,
+      31,
+      1,
+      "STRING"
+    ],
+    [
+      23,
+      30,
+      2,
+      33,
+      0,
+      "STRING"
+    ],
+    [
+      24,
+      42,
+      0,
+      43,
+      0,
+      "CONTROL_NET"
+    ],
+    [
+      25,
+      40,
+      0,
+      32,
+      0,
+      "MODEL"
+    ],
+    [
+      26,
+      40,
+      1,
+      32,
+      1,
+      "CLIP"
+    ],
+    [
+      27,
+      31,
+      1,
+      32,
+      2,
+      "DOWNLOAD_RESULT"
+    ],
+    [
+      28,
+      21,
+      0,
+      51,
+      0,
+      "STRING"
+    ],
+    [
+      29,
+      50,
+      0,
+      51,
+      1,
+      "STRING"
+    ],
+    [
+      30,
+      51,
+      0,
+      52,
+      1,
+      "STRING"
+    ],
+    [
+      31,
+      40,
+      1,
+      52,
+      0,
+      "CLIP"
+    ],
+    [
+      32,
+      40,
+      1,
+      53,
+      0,
+      "CLIP"
+    ],
+    [
+      33,
+      52,
+      0,
+      54,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      34,
+      53,
+      0,
+      54,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      35,
+      43,
+      0,
+      54,
+      2,
+      "CONTROL_NET"
+    ],
+    [
+      36,
+      3,
+      0,
+      54,
+      3,
+      "IMAGE"
+    ],
+    [
+      37,
+      40,
+      2,
+      54,
+      4,
+      "VAE"
+    ],
+    [
+      38,
+      40,
+      0,
+      55,
+      0,
+      "MODEL"
+    ],
+    [
+      39,
+      44,
+      0,
+      55,
+      1,
+      "IPADAPTER"
+    ],
+    [
+      40,
+      3,
+      0,
+      55,
+      2,
+      "IMAGE"
+    ],
+    [
+      41,
+      45,
+      0,
+      55,
+      5,
+      "CLIP_VISION"
+    ],
+    [
+      42,
+      3,
+      0,
+      56,
+      0,
+      "IMAGE"
+    ],
+    [
+      43,
+      55,
+      0,
+      56,
+      1,
+      "MODEL"
+    ],
+    [
+      44,
+      54,
+      0,
+      56,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      45,
+      54,
+      1,
+      56,
+      3,
+      "CONDITIONING"
+    ],
+    [
+      46,
+      40,
+      2,
+      56,
+      4,
+      "VAE"
+    ],
+    [
+      47,
+      41,
+      0,
+      56,
+      5,
+      "UPSCALE_MODEL"
+    ],
+    [
+      48,
+      30,
+      1,
+      61,
+      0,
+      "STRING"
+    ],
+    [
+      49,
+      21,
+      0,
+      61,
+      1,
+      "STRING"
+    ],
+    [
+      50,
+      61,
+      0,
+      62,
+      0,
+      "STRING"
+    ],
+    [
+      51,
+      60,
+      0,
+      62,
+      1,
+      "STRING"
+    ],
+    [
+      52,
+      62,
+      0,
+      63,
+      1,
+      "STRING"
+    ],
+    [
+      53,
+      32,
+      1,
+      63,
+      0,
+      "CLIP"
+    ],
+    [
+      54,
+      62,
+      0,
+      67,
+      0,
+      "STRING"
+    ],
+    [
+      55,
+      56,
+      0,
+      64,
+      0,
+      "IMAGE"
+    ],
+    [
+      56,
+      32,
+      0,
+      64,
+      1,
+      "MODEL"
+    ],
+    [
+      57,
+      32,
+      1,
+      64,
+      2,
+      "CLIP"
+    ],
+    [
+      58,
+      40,
+      2,
+      64,
+      3,
+      "VAE"
+    ],
+    [
+      59,
+      63,
+      0,
+      64,
+      4,
+      "CONDITIONING"
+    ],
+    [
+      60,
+      53,
+      0,
+      64,
+      5,
+      "CONDITIONING"
+    ],
+    [
+      61,
+      10,
+      0,
+      64,
+      6,
+      "BBOX_DETECTOR"
+    ],
+    [
+      62,
+      64,
+      0,
+      65,
+      0,
+      "IMAGE"
+    ],
+    [
+      63,
+      56,
+      0,
+      66,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "title": "1. Input (one picture or a folder)",
+      "bounding": [
+        20,
+        40,
+        620,
+        1100
+      ],
+      "color": "#88A",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "2. Crop the face and ask Grok",
+      "bounding": [
+        660,
+        0,
+        2000,
+        680
+      ],
+      "color": "#a1309b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "3. Character LoRA from Civitai",
+      "bounding": [
+        1820,
+        620,
+        840,
+        440
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "4. Models",
+      "bounding": [
+        20,
+        1100,
+        360,
+        680
+      ],
+      "color": "#444",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "5. Detailed 2x upscale: tile ControlNet + IPAdapter + Ultimate SD Upscale",
+      "bounding": [
+        660,
+        1100,
+        1760,
+        680
+      ],
+      "color": "#b58b2a",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "title": "6. Re-render the face with the character LoRA",
+      "bounding": [
+        660,
+        1800,
+        2320,
+        600
+      ],
+      "color": "#8A8",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.5,
+      "offset": [
+        0,
+        0
+      ]
+    }
+  },
+  "version": 0.4
+}

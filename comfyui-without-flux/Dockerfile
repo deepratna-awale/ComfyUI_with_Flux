@@ -109,6 +109,10 @@ RUN set -eux; cd /ComfyUI/custom_nodes; \
         https://github.com/GACLove/ComfyUI-VFI.git \
         https://github.com/Lightricks/ComfyUI-LTXVideo.git \
         https://github.com/Fictiverse/ComfyUI_Fictiverse.git \
+        https://github.com/cubiq/ComfyUI_IPAdapter_plus.git \
+        https://github.com/ltdrdata/ComfyUI-Inspire-Pack.git \
+        https://github.com/Slartibart23/comfyui-grok-prompt-forge.git \
+        https://github.com/watarika/ComfyUI-Model-Batch-Downloader.git \
     | xargs -P 8 -n 1 git clone --depth 1; \
     wait $!; \
     python /ComfyUI/custom_nodes/x-flux-comfyui/setup.py; \
@@ -138,7 +142,9 @@ RUN set -eux; cd /ComfyUI/custom_nodes; \
     mkdir -p /ComfyUI/models/vibevoice/vvembed; \
     uv pip install -r ComfyUI-VFI/requirements.txt; \
     uv pip install -r ComfyUI-LTXVideo/requirements.txt; \
-    uv pip install -r ComfyUI_Fictiverse/requirements.txt
+    uv pip install -r ComfyUI_Fictiverse/requirements.txt; \
+    uv pip install -r ComfyUI-Inspire-Pack/requirements.txt; \
+    uv pip install -r comfyui-grok-prompt-forge/requirements.txt
 
 # Install AI-Toolkit's Python requirements (the code itself comes from the aitk-ui stage)
 COPY --from=aitk-ui /ai-toolkit/requirements*.txt /tmp/ai-toolkit/
@@ -240,6 +246,7 @@ RUN mkdir -p /opt/venv/share/jupyter/lab/settings && \
 # Loads the custom nodes you install yourself from the volume (see comfyui-on-workspace.sh)
 COPY --chmod=644 extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
 COPY --chmod=644 workflows/ /ComfyUI/user/default/workflows/
+COPY --chmod=755 custom_nodes/ComfyUI-CivitaiLoraSearch/ /ComfyUI/custom_nodes/ComfyUI-CivitaiLoraSearch/
 COPY --chmod=644 comfy.settings.json /ComfyUI/user/default/comfy.settings.json
 COPY --chmod=644 character_sheet_example.png /ComfyUI/input/character_sheet_example.png
 COPY --chmod=644 example_photo.png /ComfyUI/input/example_photo.png
@@ -292,6 +299,7 @@ COPY --chmod=755 download_VibeVoice.sh /download_VibeVoice.sh
 COPY --chmod=755 download_z-image.sh /download_z-image.sh
 COPY --chmod=755 download_LTX2.sh /download_LTX2.sh
 COPY --chmod=755 download_LTX2.3.sh /download_LTX2.3.sh
+COPY --chmod=755 download_CharacterUpscale.sh /download_CharacterUpscale.sh
 
 # Model files are no longer baked into the image. Every model file in the image is pulled and
 # unpacked by RunPod and then copied to the network volume on first boot, so a 2.5 GB set of public

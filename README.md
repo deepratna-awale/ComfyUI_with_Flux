@@ -12,6 +12,17 @@
 - **New environment variable `JUPYTER_PASSWORD`**: the login for JupyterLab. If it's left empty, JupyterLab opens without a login.
 - **Relaxed file permissions**: files and folders in the image and on `/workspace` can be written by every user and tool, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
 
+## Anime Character Upscale workflow
+
+`Anime_Character_Upscale.json` upscales anime pictures and keeps the character right:
+
+1. It crops the face and asks Grok who the character is, their expression and what they are doing. You can give the series as a hint, but it isn't needed.
+2. It finds that character's LoRA on Civitai and downloads it once (to `models/loras/civitai_characters`).
+3. It upscales 2x with a tile ControlNet, IPAdapter and Ultimate SD Upscale.
+4. It re-renders the face with FaceDetailer and the character LoRA.
+
+Point *Load Folder* at a directory to run every picture in it; each one gets its own character and LoRA. Set `XAI_API_KEY` (Grok) and `CAI_API_KEY` or `CIVITAI_API_TOKEN` (Civitai) in the RunPod template; they are read from the environment and never stored in the workflow. Set `DOWNLOAD_CHARACTER_UPSCALE=true` for its models.
+
 ## Choosing which models to download
 
 On every pod start, the model sets you select are downloaded straight to the network volume in the background, all at the same time (log: `/workspace/model_downloads.log`). Files that are already on the volume are skipped, so after the first start only new selections are downloaded. ComfyUI starts right away; models show up in it as each file finishes (refresh the model list in the UI to see them).
@@ -40,8 +51,9 @@ Set these as environment variables in the RunPod template, or when deploying a p
 | `DOWNLOAD_FLORENCE2` | `false` | Florence-2 |
 | `DOWNLOAD_T5_FP16` | `false` | t5xxl fp16 text encoder |
 | `DOWNLOAD_VIBEVOICE` | `false` | VibeVoice Large and its tokenizer |
+| `DOWNLOAD_CHARACTER_UPSCALE` | `false` | WAI-Illustrious checkpoint, union ControlNet, IPAdapter Plus SDXL, CLIP vision, 4x-UltraSharp and face detection (Anime Character Upscale) |
 
-Instead of one variable per set you can also list them in `DOWNLOAD_MODELS`, for example `DOWNLOAD_MODELS=wan2.2,ltx2.3`. The names are `flux`, `base`, `flux2`, `wan2.1`, `wan2.2`, `infinitetalk`, `ltx2`, `ltx2.3`, `qwen_fp8`, `qwen_bf16`, `z-image`, `controlnet`, `outpainting`, `supir`, `ldsr`, `upscalers`, `florence2`, `t5_fp16` and `vibevoice`; `all` selects every set.
+Instead of one variable per set you can also list them in `DOWNLOAD_MODELS`, for example `DOWNLOAD_MODELS=wan2.2,ltx2.3`. The names are `flux`, `base`, `flux2`, `wan2.1`, `wan2.2`, `infinitetalk`, `ltx2`, `ltx2.3`, `qwen_fp8`, `qwen_bf16`, `z-image`, `controlnet`, `outpainting`, `supir`, `ldsr`, `upscalers`, `florence2`, `t5_fp16`, `vibevoice` and `character_upscale`; `all` selects every set.
 
 You can also download a set later from the terminal, e.g. `bash /download_LTX2.3.sh`, or run `DOWNLOAD_MODELS=ltx2.3 /download_selected.sh`. `DOWNLOAD_JOBS` (default 4) sets how many files download at once and `DOWNLOAD_CONNECTIONS` (default 8) how many connections each file uses.
 
