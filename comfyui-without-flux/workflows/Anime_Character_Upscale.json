@@ -1,6 +1,6 @@
 {
   "last_node_id": 67,
-  "last_link_id": 63,
+  "last_link_id": 65,
   "nodes": [
     {
       "id": 1,
@@ -129,9 +129,9 @@
             5,
             13,
             15,
-            36,
-            40,
-            42
+            38,
+            42,
+            44
           ],
           "label": "IMAGE"
         }
@@ -196,7 +196,7 @@
           "type": "BBOX_DETECTOR",
           "links": [
             3,
-            61
+            63
           ]
         },
         {
@@ -693,8 +693,9 @@
           "links": [
             20,
             21,
-            28,
-            49
+            22,
+            30,
+            51
           ]
         }
       ],
@@ -777,6 +778,12 @@
           "name": "tags",
           "type": "STRING",
           "link": 21
+        },
+        {
+          "name": "suggestion",
+          "type": "STRING",
+          "link": 23,
+          "shape": 7
         }
       ],
       "outputs": [
@@ -784,21 +791,21 @@
           "name": "manifest_json",
           "type": "STRING",
           "links": [
-            22
+            24
           ]
         },
         {
           "name": "trigger_words",
           "type": "STRING",
           "links": [
-            48
+            50
           ]
         },
         {
           "name": "civitai_url",
           "type": "STRING",
           "links": [
-            23
+            25
           ]
         }
       ],
@@ -839,7 +846,7 @@
           "widget": {
             "name": "manifest_json"
           },
-          "link": 22
+          "link": 24
         }
       ],
       "outputs": [
@@ -852,7 +859,7 @@
           "name": "download_result",
           "type": "DOWNLOAD_RESULT",
           "links": [
-            27
+            29
           ]
         }
       ],
@@ -882,17 +889,17 @@
         {
           "name": "model",
           "type": "MODEL",
-          "link": 25
+          "link": 27
         },
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 26
+          "link": 28
         },
         {
           "name": "download_result",
           "type": "DOWNLOAD_RESULT",
-          "link": 27
+          "link": 29
         }
       ],
       "outputs": [
@@ -900,15 +907,15 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            56
+            58
           ]
         },
         {
           "name": "CLIP",
           "type": "CLIP",
           "links": [
-            53,
-            57
+            55,
+            59
           ]
         }
       ],
@@ -940,7 +947,7 @@
         {
           "name": "text",
           "type": "STRING",
-          "link": 23
+          "link": 25
         }
       ],
       "outputs": [
@@ -958,6 +965,57 @@
       "title": "LoRA page"
     },
     {
+      "id": 23,
+      "type": "GrokTextRefine",
+      "pos": [
+        1380,
+        700
+      ],
+      "size": [
+        420,
+        380
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 22
+        }
+      ],
+      "outputs": [
+        {
+          "name": "refined_text",
+          "type": "STRING",
+          "links": [
+            23
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GrokTextRefine"
+      },
+      "widgets_values": [
+        "You know Civitai well. The user sends Danbooru tags; the first tag is an anime character. Reply with the civitai.com URL of the most downloaded Illustrious character LoRA for that character, in the form https://civitai.com/models/<model id>?modelVersionId=<version id>, and nothing else. If you don't know one, reply: none",
+        "grok-4.7",
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        200,
+        0,
+        "fixed",
+        "",
+        "grok_api_key.txt",
+        "https://api.x.ai/v1",
+        true,
+        120
+      ],
+      "title": "Grok: suggest the Civitai LoRA"
+    },
+    {
       "id": 40,
       "type": "CheckpointLoaderSimple",
       "pos": [
@@ -969,7 +1027,7 @@
         100
       ],
       "flags": {},
-      "order": 21,
+      "order": 22,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -977,26 +1035,26 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            25,
-            38
+            27,
+            40
           ]
         },
         {
           "name": "CLIP",
           "type": "CLIP",
           "links": [
-            26,
-            31,
-            32
+            28,
+            33,
+            34
           ]
         },
         {
           "name": "VAE",
           "type": "VAE",
           "links": [
-            37,
-            46,
-            58
+            39,
+            48,
+            60
           ]
         }
       ],
@@ -1020,7 +1078,7 @@
         60
       ],
       "flags": {},
-      "order": 22,
+      "order": 23,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1028,7 +1086,7 @@
           "name": "UPSCALE_MODEL",
           "type": "UPSCALE_MODEL",
           "links": [
-            47
+            49
           ]
         }
       ],
@@ -1051,7 +1109,7 @@
         60
       ],
       "flags": {},
-      "order": 23,
+      "order": 24,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1059,7 +1117,7 @@
           "name": "CONTROL_NET",
           "type": "CONTROL_NET",
           "links": [
-            24
+            26
           ]
         }
       ],
@@ -1082,13 +1140,13 @@
         60
       ],
       "flags": {},
-      "order": 24,
+      "order": 25,
       "mode": 0,
       "inputs": [
         {
           "name": "control_net",
           "type": "CONTROL_NET",
-          "link": 24
+          "link": 26
         }
       ],
       "outputs": [
@@ -1096,7 +1154,7 @@
           "name": "CONTROL_NET",
           "type": "CONTROL_NET",
           "links": [
-            35
+            37
           ]
         }
       ],
@@ -1119,7 +1177,7 @@
         60
       ],
       "flags": {},
-      "order": 25,
+      "order": 26,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1127,7 +1185,7 @@
           "name": "IPADAPTER",
           "type": "IPADAPTER",
           "links": [
-            39
+            41
           ]
         }
       ],
@@ -1150,7 +1208,7 @@
         60
       ],
       "flags": {},
-      "order": 26,
+      "order": 27,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1158,7 +1216,7 @@
           "name": "CLIP_VISION",
           "type": "CLIP_VISION",
           "links": [
-            41
+            43
           ]
         }
       ],
@@ -1181,7 +1239,7 @@
         120
       ],
       "flags": {},
-      "order": 27,
+      "order": 28,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1189,7 +1247,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            29
+            31
           ]
         }
       ],
@@ -1214,19 +1272,19 @@
         80
       ],
       "flags": {},
-      "order": 28,
+      "order": 29,
       "mode": 0,
       "inputs": [
         {
           "name": "string1",
           "type": "STRING",
-          "link": 28,
+          "link": 30,
           "shape": 7
         },
         {
           "name": "string2",
           "type": "STRING",
-          "link": 29,
+          "link": 31,
           "shape": 7
         }
       ],
@@ -1235,7 +1293,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            30
+            32
           ]
         }
       ],
@@ -1258,13 +1316,13 @@
         100
       ],
       "flags": {},
-      "order": 29,
+      "order": 30,
       "mode": 0,
       "inputs": [
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 31
+          "link": 33
         },
         {
           "name": "text",
@@ -1272,7 +1330,7 @@
           "widget": {
             "name": "text"
           },
-          "link": 30
+          "link": 32
         }
       ],
       "outputs": [
@@ -1280,7 +1338,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            33
+            35
           ]
         }
       ],
@@ -1304,13 +1362,13 @@
         160
       ],
       "flags": {},
-      "order": 30,
+      "order": 31,
       "mode": 0,
       "inputs": [
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 32
+          "link": 34
         }
       ],
       "outputs": [
@@ -1318,8 +1376,8 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            34,
-            60
+            36,
+            62
           ]
         }
       ],
@@ -1343,33 +1401,33 @@
         190
       ],
       "flags": {},
-      "order": 31,
+      "order": 32,
       "mode": 0,
       "inputs": [
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 33
+          "link": 35
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
-          "link": 34
+          "link": 36
         },
         {
           "name": "control_net",
           "type": "CONTROL_NET",
-          "link": 35
+          "link": 37
         },
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 36
+          "link": 38
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": 37,
+          "link": 39,
           "shape": 7
         }
       ],
@@ -1378,14 +1436,14 @@
           "name": "positive",
           "type": "CONDITIONING",
           "links": [
-            44
+            46
           ]
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
           "links": [
-            45
+            47
           ]
         }
       ],
@@ -1411,23 +1469,23 @@
         280
       ],
       "flags": {},
-      "order": 32,
+      "order": 33,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 38
+          "link": 40
         },
         {
           "name": "ipadapter",
           "type": "IPADAPTER",
-          "link": 39
+          "link": 41
         },
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 40
+          "link": 42
         },
         {
           "name": "image_negative",
@@ -1444,7 +1502,7 @@
         {
           "name": "clip_vision",
           "type": "CLIP_VISION",
-          "link": 41,
+          "link": 43,
           "shape": 7
         }
       ],
@@ -1453,7 +1511,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            43
+            45
           ]
         }
       ],
@@ -1482,38 +1540,38 @@
         620
       ],
       "flags": {},
-      "order": 33,
+      "order": 34,
       "mode": 0,
       "inputs": [
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 42
+          "link": 44
         },
         {
           "name": "model",
           "type": "MODEL",
-          "link": 43
+          "link": 45
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 44
+          "link": 46
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
-          "link": 45
+          "link": 47
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": 46
+          "link": 48
         },
         {
           "name": "upscale_model",
           "type": "UPSCALE_MODEL",
-          "link": 47
+          "link": 49
         }
       ],
       "outputs": [
@@ -1521,8 +1579,8 @@
           "name": "IMAGE",
           "type": "IMAGE",
           "links": [
-            55,
-            63
+            57,
+            65
           ]
         }
       ],
@@ -1566,7 +1624,7 @@
         120
       ],
       "flags": {},
-      "order": 34,
+      "order": 35,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -1574,7 +1632,7 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            51
+            53
           ]
         }
       ],
@@ -1593,51 +1651,6 @@
       "pos": [
         1040,
         1860
-      ],
-      "size": [
-        300,
-        80
-      ],
-      "flags": {},
-      "order": 35,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "string1",
-          "type": "STRING",
-          "link": 48,
-          "shape": 7
-        },
-        {
-          "name": "string2",
-          "type": "STRING",
-          "link": 49,
-          "shape": 7
-        }
-      ],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            50
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "JoinStrings"
-      },
-      "widgets_values": [
-        ", "
-      ],
-      "title": "trigger words + Grok tags"
-    },
-    {
-      "id": 62,
-      "type": "JoinStrings",
-      "pos": [
-        1040,
-        1980
       ],
       "size": [
         300,
@@ -1665,8 +1678,53 @@
           "name": "STRING",
           "type": "STRING",
           "links": [
-            52,
-            54
+            52
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "JoinStrings"
+      },
+      "widgets_values": [
+        ", "
+      ],
+      "title": "trigger words + Grok tags"
+    },
+    {
+      "id": 62,
+      "type": "JoinStrings",
+      "pos": [
+        1040,
+        1980
+      ],
+      "size": [
+        300,
+        80
+      ],
+      "flags": {},
+      "order": 37,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "string1",
+          "type": "STRING",
+          "link": 52,
+          "shape": 7
+        },
+        {
+          "name": "string2",
+          "type": "STRING",
+          "link": 53,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            54,
+            56
           ]
         }
       ],
@@ -1690,13 +1748,13 @@
         100
       ],
       "flags": {},
-      "order": 37,
+      "order": 38,
       "mode": 0,
       "inputs": [
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 53
+          "link": 55
         },
         {
           "name": "text",
@@ -1704,7 +1762,7 @@
           "widget": {
             "name": "text"
           },
-          "link": 52
+          "link": 54
         }
       ],
       "outputs": [
@@ -1712,7 +1770,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            59
+            61
           ]
         }
       ],
@@ -1736,43 +1794,43 @@
         900
       ],
       "flags": {},
-      "order": 38,
+      "order": 39,
       "mode": 0,
       "inputs": [
         {
           "name": "image",
           "type": "IMAGE",
-          "link": 55
+          "link": 57
         },
         {
           "name": "model",
           "type": "MODEL",
-          "link": 56
+          "link": 58
         },
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 57
+          "link": 59
         },
         {
           "name": "vae",
           "type": "VAE",
-          "link": 58
+          "link": 60
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 59
+          "link": 61
         },
         {
           "name": "negative",
           "type": "CONDITIONING",
-          "link": 60
+          "link": 62
         },
         {
           "name": "bbox_detector",
           "type": "BBOX_DETECTOR",
-          "link": 61
+          "link": 63
         },
         {
           "name": "sam_model_opt",
@@ -1804,7 +1862,7 @@
           "name": "image",
           "type": "IMAGE",
           "links": [
-            62
+            64
           ]
         },
         {
@@ -1884,13 +1942,13 @@
         600
       ],
       "flags": {},
-      "order": 39,
+      "order": 40,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 62
+          "link": 64
         }
       ],
       "outputs": [
@@ -1919,13 +1977,13 @@
         500
       ],
       "flags": {},
-      "order": 40,
+      "order": 41,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 63
+          "link": 65
         }
       ],
       "outputs": [
@@ -1953,13 +2011,13 @@
         160
       ],
       "flags": {},
-      "order": 41,
+      "order": 42,
       "mode": 0,
       "inputs": [
         {
           "name": "text",
           "type": "STRING",
-          "link": 54
+          "link": 56
         }
       ],
       "outputs": [
@@ -1988,7 +2046,7 @@
         280
       ],
       "flags": {},
-      "order": 42,
+      "order": 43,
       "mode": 0,
       "inputs": [],
       "outputs": [],
@@ -1996,7 +2054,7 @@
         "Node name for S&R": "MarkdownNote"
       },
       "widgets_values": [
-        "## Anime Character Upscale\n\n1. Crops the face and asks **Grok** who the character is, their expression and what they are doing.\n2. Finds that character's **LoRA on Civitai** and downloads it (once).\n3. Upscales 2x with **tile ControlNet + IPAdapter + Ultimate SD Upscale**.\n4. Re-renders the face with **FaceDetailer** and the character LoRA.\n\n**Keys** (environment variables, never typed here): `XAI_API_KEY` for Grok, `CIVITAI_API_TOKEN` (or `CAI_API_KEY`) for Civitai.\n\n**One picture:** pick it in *Load Image* and queue.\n**A folder:** mute *Load Image* (Ctrl+M), unmute *Load Folder*, set its directory, queue once. Every picture gets its own character and LoRA.\n\nThe series hint is optional. When no character LoRA is found, Face Enhancer Illustrious is used instead.\nModels: set `DOWNLOAD_CHARACTER_UPSCALE=true` or run `/download_CharacterUpscale.sh`."
+        "## Anime Character Upscale\n\n1. Crops the face and asks **Grok** who the character is, their expression and what they are doing.\n2. Asks Grok for that character's **LoRA on Civitai**, checks the link (searching Civitai when it's wrong) and downloads it once.\n3. Upscales 2x with **tile ControlNet + IPAdapter + Ultimate SD Upscale**.\n4. Re-renders the face with **FaceDetailer** and the character LoRA.\n\n**Keys** (environment variables, never typed here): `XAI_API_KEY` for Grok, `CIVITAI_API_TOKEN` (or `CAI_API_KEY`) for Civitai.\n\n**One picture:** pick it in *Load Image* and queue.\n**A folder:** mute *Load Image* (Ctrl+M), unmute *Load Folder*, set its directory, queue once. Every picture gets its own character and LoRA.\n\nThe series hint is optional. When no character LoRA is found, Face Enhancer Illustrious is used instead.\nModels: set `DOWNLOAD_CHARACTER_UPSCALE=true` or run `/download_CharacterUpscale.sh`."
       ],
       "title": "How to use"
     }
@@ -2172,6 +2230,22 @@
     ],
     [
       22,
+      21,
+      0,
+      23,
+      0,
+      "STRING"
+    ],
+    [
+      23,
+      23,
+      0,
+      30,
+      1,
+      "STRING"
+    ],
+    [
+      24,
       30,
       0,
       31,
@@ -2179,7 +2253,7 @@
       "STRING"
     ],
     [
-      23,
+      25,
       30,
       2,
       33,
@@ -2187,7 +2261,7 @@
       "STRING"
     ],
     [
-      24,
+      26,
       42,
       0,
       43,
@@ -2195,7 +2269,7 @@
       "CONTROL_NET"
     ],
     [
-      25,
+      27,
       40,
       0,
       32,
@@ -2203,7 +2277,7 @@
       "MODEL"
     ],
     [
-      26,
+      28,
       40,
       1,
       32,
@@ -2211,7 +2285,7 @@
       "CLIP"
     ],
     [
-      27,
+      29,
       31,
       1,
       32,
@@ -2219,7 +2293,7 @@
       "DOWNLOAD_RESULT"
     ],
     [
-      28,
+      30,
       21,
       0,
       51,
@@ -2227,7 +2301,7 @@
       "STRING"
     ],
     [
-      29,
+      31,
       50,
       0,
       51,
@@ -2235,7 +2309,7 @@
       "STRING"
     ],
     [
-      30,
+      32,
       51,
       0,
       52,
@@ -2243,31 +2317,31 @@
       "STRING"
     ],
     [
-      31,
-      40,
-      1,
-      52,
-      0,
-      "CLIP"
-    ],
-    [
-      32,
-      40,
-      1,
-      53,
-      0,
-      "CLIP"
-    ],
-    [
       33,
+      40,
+      1,
       52,
       0,
-      54,
-      0,
-      "CONDITIONING"
+      "CLIP"
     ],
     [
       34,
+      40,
+      1,
+      53,
+      0,
+      "CLIP"
+    ],
+    [
+      35,
+      52,
+      0,
+      54,
+      0,
+      "CONDITIONING"
+    ],
+    [
+      36,
       53,
       0,
       54,
@@ -2275,7 +2349,7 @@
       "CONDITIONING"
     ],
     [
-      35,
+      37,
       43,
       0,
       54,
@@ -2283,7 +2357,7 @@
       "CONTROL_NET"
     ],
     [
-      36,
+      38,
       3,
       0,
       54,
@@ -2291,7 +2365,7 @@
       "IMAGE"
     ],
     [
-      37,
+      39,
       40,
       2,
       54,
@@ -2299,7 +2373,7 @@
       "VAE"
     ],
     [
-      38,
+      40,
       40,
       0,
       55,
@@ -2307,7 +2381,7 @@
       "MODEL"
     ],
     [
-      39,
+      41,
       44,
       0,
       55,
@@ -2315,7 +2389,7 @@
       "IPADAPTER"
     ],
     [
-      40,
+      42,
       3,
       0,
       55,
@@ -2323,7 +2397,7 @@
       "IMAGE"
     ],
     [
-      41,
+      43,
       45,
       0,
       55,
@@ -2331,7 +2405,7 @@
       "CLIP_VISION"
     ],
     [
-      42,
+      44,
       3,
       0,
       56,
@@ -2339,7 +2413,7 @@
       "IMAGE"
     ],
     [
-      43,
+      45,
       55,
       0,
       56,
@@ -2347,7 +2421,7 @@
       "MODEL"
     ],
     [
-      44,
+      46,
       54,
       0,
       56,
@@ -2355,7 +2429,7 @@
       "CONDITIONING"
     ],
     [
-      45,
+      47,
       54,
       1,
       56,
@@ -2363,7 +2437,7 @@
       "CONDITIONING"
     ],
     [
-      46,
+      48,
       40,
       2,
       56,
@@ -2371,7 +2445,7 @@
       "VAE"
     ],
     [
-      47,
+      49,
       41,
       0,
       56,
@@ -2379,7 +2453,7 @@
       "UPSCALE_MODEL"
     ],
     [
-      48,
+      50,
       30,
       1,
       61,
@@ -2387,7 +2461,7 @@
       "STRING"
     ],
     [
-      49,
+      51,
       21,
       0,
       61,
@@ -2395,7 +2469,7 @@
       "STRING"
     ],
     [
-      50,
+      52,
       61,
       0,
       62,
@@ -2403,7 +2477,7 @@
       "STRING"
     ],
     [
-      51,
+      53,
       60,
       0,
       62,
@@ -2411,7 +2485,7 @@
       "STRING"
     ],
     [
-      52,
+      54,
       62,
       0,
       63,
@@ -2419,7 +2493,7 @@
       "STRING"
     ],
     [
-      53,
+      55,
       32,
       1,
       63,
@@ -2427,7 +2501,7 @@
       "CLIP"
     ],
     [
-      54,
+      56,
       62,
       0,
       67,
@@ -2435,7 +2509,7 @@
       "STRING"
     ],
     [
-      55,
+      57,
       56,
       0,
       64,
@@ -2443,7 +2517,7 @@
       "IMAGE"
     ],
     [
-      56,
+      58,
       32,
       0,
       64,
@@ -2451,7 +2525,7 @@
       "MODEL"
     ],
     [
-      57,
+      59,
       32,
       1,
       64,
@@ -2459,7 +2533,7 @@
       "CLIP"
     ],
     [
-      58,
+      60,
       40,
       2,
       64,
@@ -2467,7 +2541,7 @@
       "VAE"
     ],
     [
-      59,
+      61,
       63,
       0,
       64,
@@ -2475,7 +2549,7 @@
       "CONDITIONING"
     ],
     [
-      60,
+      62,
       53,
       0,
       64,
@@ -2483,7 +2557,7 @@
       "CONDITIONING"
     ],
     [
-      61,
+      63,
       10,
       0,
       64,
@@ -2491,7 +2565,7 @@
       "BBOX_DETECTOR"
     ],
     [
-      62,
+      64,
       64,
       0,
       65,
@@ -2499,7 +2573,7 @@
       "IMAGE"
     ],
     [
-      63,
+      65,
       56,
       0,
       66,
@@ -2533,12 +2607,12 @@
       "flags": {}
     },
     {
-      "title": "3. Character LoRA from Civitai",
+      "title": "3. Character LoRA from Civitai (Grok suggests, the search node checks)",
       "bounding": [
-        1820,
-        620,
-        840,
-        440
+        1360,
+        690,
+        1300,
+        400
       ],
       "color": "#3f789e",
       "font_size": 24,
