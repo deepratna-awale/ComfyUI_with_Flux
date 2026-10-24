@@ -158,6 +158,13 @@ RUN uv pip install -r /tmp/ai-toolkit/requirements.txt && rm -rf /tmp/ai-toolkit
 RUN uv pip uninstall mediapipe controlnet_aux && \
     uv pip install mediapipe==0.10.14 controlnet-aux==0.0.10
 
+# mediapipe 0.10.14 keeps protobuf below 5, and onnx 1.18+ needs protobuf 5 (ReActor failed with "cannot import
+# name 'runtime_version'"), so pin onnx. Some node requirements also pull the CPU onnxruntime, which shadows the
+# GPU build and makes ReActor run on the CPU; keep only onnxruntime-gpu.
+RUN uv pip install "onnx==1.17.0" && \
+    (uv pip uninstall onnxruntime || true) && \
+    uv pip install --reinstall onnxruntime-gpu
+
 # AI-Toolkit pins av==16.0.1, but ComfyUI needs a newer PyAV (av>=17 for ColorPrimaries in
 # av.video.reformatter) and fails to start without it. Both share /opt/venv, so restore
 # ComfyUI's requirement after the AI-Toolkit install.
