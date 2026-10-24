@@ -33,6 +33,7 @@ SETS=(
     "florence2    DOWNLOAD_FLORENCE2       download_Florence-2.sh"
     "t5_fp16      DOWNLOAD_T5_FP16         download_fp16.sh"
     "vibevoice    DOWNLOAD_VIBEVOICE       download_VibeVoice.sh"
+    "character_upscale DOWNLOAD_CHARACTER_UPSCALE download_CharacterUpscale.sh"
 )
 
 is_true() {

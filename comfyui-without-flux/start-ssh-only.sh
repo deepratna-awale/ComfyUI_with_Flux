@@ -6,6 +6,11 @@ echo "pod started"
 # world-writable files and folders, so nothing ends up locked to one user
 umask 000
 
+# The Civitai downloader node (Model Batch Downloader) reads CIVITAI_API_TOKEN; accept CAI_API_KEY too
+if [[ -z "${CIVITAI_API_TOKEN}" && -n "${CAI_API_KEY}" ]]; then
+    export CIVITAI_API_TOKEN="${CAI_API_KEY}"
+fi
+
 # Start JupyterLab first: it doesn't depend on the volume layout or the models, so it is usable
 # right away, e.g. to download LoRAs with civitai-download while the models are still downloading.
 # Its URL on the RunPod proxy is public, so set JUPYTER_PASSWORD to protect it; it is used as the

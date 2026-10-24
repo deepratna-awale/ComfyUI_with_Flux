@@ -13,6 +13,18 @@
 - **CivitAI downloader included**: `civitai-download` ([civitai-bulk-downloader](https://github.com/deepratna-awale/civitai-bulk-downloader)) is installed, with an example notebook in `/workspace/civitai`. Set your CivitAI API key in the new `CAI_API_KEY` environment variable, see [Downloading models from CivitAI](#downloading-models-from-civitai).
 - **Relaxed file permissions**: files and folders in the image and on `/workspace` can be written by every user and tool, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
 
+## Anime Character Upscale workflow
+
+`Anime_Character_Upscale.json` upscales anime pictures and keeps the character right:
+
+1. It removes watermarks (OCR + Big-LaMa, then repaints the spots) and reads the prompt embedded in the picture, if any.
+2. It crops every face and asks Grok who each character is, their expression and what they are doing. The embedded prompt and an optional series hint are given to Grok as hints.
+3. For each face it finds the character's LoRA on Civitai (Grok suggests one, a search node checks it) and downloads it once (to `models/loras/civitai_characters`).
+4. It upscales 2x with a tile ControlNet, IPAdapter and Ultimate SD Upscale.
+5. It inpaints the faces one after another, left to right, each with its own LoRA.
+
+To run a folder, switch *Choose the input* to the folder group and set the batch count to the number of pictures; each run takes the next picture, and each face gets its own character and LoRA. `Anime_Upscale.json` does only the watermark removal and the upscale, with no Grok or Civitai calls. Set `XAI_API_KEY` (Grok) and `CAI_API_KEY` or `CIVITAI_API_TOKEN` (Civitai) in the RunPod template; they are read from the environment and never stored in the workflow. Set `DOWNLOAD_CHARACTER_UPSCALE=true` for its models.
+
 ## Choosing which models to download
 
 On every pod start, the model sets you select are downloaded straight to the network volume in the background, all at the same time (log: `/workspace/model_downloads.log`). Files that are already on the volume are skipped, so after the first start only new selections are downloaded. ComfyUI starts as soon as the Flux set (Flux, its VAE and the clip_l and t5xxl text encoders) is on the volume, so on the first start it waits for that download; set `COMFYUI_WAIT_FOR_FLUX=false` to start it right away instead. The other sets keep downloading after ComfyUI is up, and their models show up as each file finishes (refresh the model list in the UI to see them).
@@ -41,8 +53,9 @@ Set these as environment variables in the RunPod template, or when deploying a p
 | `DOWNLOAD_FLORENCE2` | `false` | Florence-2 |
 | `DOWNLOAD_T5_FP16` | `false` | t5xxl fp16 text encoder |
 | `DOWNLOAD_VIBEVOICE` | `false` | VibeVoice Large and its tokenizer |
+| `DOWNLOAD_CHARACTER_UPSCALE` | `false` | WAI-Illustrious checkpoint, union ControlNet, IPAdapter Plus SDXL, CLIP vision, 4x-UltraSharp and face detection (Anime Character Upscale) |
 
-Instead of one variable per set you can also list them in `DOWNLOAD_MODELS`, for example `DOWNLOAD_MODELS=wan2.2,ltx2.3`. The names are `flux`, `base`, `flux2`, `wan2.1`, `wan2.2`, `infinitetalk`, `ltx2`, `ltx2.3`, `qwen_fp8`, `qwen_bf16`, `z-image`, `controlnet`, `outpainting`, `supir`, `ldsr`, `upscalers`, `florence2`, `t5_fp16` and `vibevoice`; `all` selects every set.
+Instead of one variable per set you can also list them in `DOWNLOAD_MODELS`, for example `DOWNLOAD_MODELS=wan2.2,ltx2.3`. The names are `flux`, `base`, `flux2`, `wan2.1`, `wan2.2`, `infinitetalk`, `ltx2`, `ltx2.3`, `qwen_fp8`, `qwen_bf16`, `z-image`, `controlnet`, `outpainting`, `supir`, `ldsr`, `upscalers`, `florence2`, `t5_fp16`, `vibevoice` and `character_upscale`; `all` selects every set.
 
 You can also download a set later from the terminal, e.g. `bash /download_LTX2.3.sh`, or run `DOWNLOAD_MODELS=ltx2.3 /download_selected.sh`. `DOWNLOAD_JOBS` (default 4) sets how many files download at once and `DOWNLOAD_CONNECTIONS` (default 8) how many connections each file uses.
 

@@ -75,6 +75,7 @@ RUN uv pip install -U albumentations
 # order so later nodes still override the pins of earlier ones
 RUN set -eux; cd /ComfyUI/custom_nodes; \
     git clone --depth 1 --recursive --shallow-submodules https://github.com/ssitu/ComfyUI_UltimateSDUpscale & \
+    git clone --depth 1 --recursive --shallow-submodules https://github.com/receyuki/comfyui-prompt-reader-node & \
     printf '%s\n' \
         https://github.com/ltdrdata/ComfyUI-Manager.git \
         https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git \
@@ -109,8 +110,13 @@ RUN set -eux; cd /ComfyUI/custom_nodes; \
         https://github.com/GACLove/ComfyUI-VFI.git \
         https://github.com/Lightricks/ComfyUI-LTXVideo.git \
         https://github.com/Fictiverse/ComfyUI_Fictiverse.git \
+        https://github.com/cubiq/ComfyUI_IPAdapter_plus.git \
+        https://github.com/ltdrdata/ComfyUI-Inspire-Pack.git \
+        https://github.com/Slartibart23/comfyui-grok-prompt-forge.git \
+        https://github.com/watarika/ComfyUI-Model-Batch-Downloader.git \
+        https://github.com/goodguy1963/comfyui-auto-watermark-mask.git \
     | xargs -P 8 -n 1 git clone --depth 1; \
-    wait $!; \
+    wait; \
     python /ComfyUI/custom_nodes/x-flux-comfyui/setup.py; \
     uv pip install -r ComfyUI-Flowty-LDSR/requirements.txt; \
     uv pip install -r ComfyUI-SUPIR/requirements.txt; \
@@ -138,7 +144,11 @@ RUN set -eux; cd /ComfyUI/custom_nodes; \
     mkdir -p /ComfyUI/models/vibevoice/vvembed; \
     uv pip install -r ComfyUI-VFI/requirements.txt; \
     uv pip install -r ComfyUI-LTXVideo/requirements.txt; \
-    uv pip install -r ComfyUI_Fictiverse/requirements.txt
+    uv pip install -r ComfyUI_Fictiverse/requirements.txt; \
+    uv pip install -r ComfyUI-Inspire-Pack/requirements.txt; \
+    uv pip install -r comfyui-grok-prompt-forge/requirements.txt; \
+    uv pip install -r comfyui-prompt-reader-node/requirements.txt; \
+    uv pip install -r comfyui-auto-watermark-mask/requirements.txt
 
 # Install AI-Toolkit's Python requirements (the code itself comes from the aitk-ui stage)
 COPY --from=aitk-ui /ai-toolkit/requirements*.txt /tmp/ai-toolkit/
@@ -147,6 +157,13 @@ RUN uv pip install -r /tmp/ai-toolkit/requirements.txt && rm -rf /tmp/ai-toolkit
 # Pin mediapipe/controlnet-aux to tested stable combo (fixes AI-Toolkit issues)
 RUN uv pip uninstall mediapipe controlnet_aux && \
     uv pip install mediapipe==0.10.14 controlnet-aux==0.0.10
+
+# mediapipe 0.10.14 keeps protobuf below 5, and onnx 1.18+ needs protobuf 5 (ReActor failed with "cannot import
+# name 'runtime_version'"), so pin onnx. Some node requirements also pull the CPU onnxruntime, which shadows the
+# GPU build and makes ReActor run on the CPU; keep only onnxruntime-gpu.
+RUN uv pip install "onnx==1.17.0" && \
+    (uv pip uninstall onnxruntime || true) && \
+    uv pip install --reinstall onnxruntime-gpu
 
 # AI-Toolkit pins av==16.0.1, but ComfyUI needs a newer PyAV (av>=17 for ColorPrimaries in
 # av.video.reformatter) and fails to start without it. Both share /opt/venv, so restore
@@ -246,6 +263,7 @@ RUN mkdir -p /opt/venv/share/jupyter/lab/settings && \
 # Loads the custom nodes you install yourself from the volume (see comfyui-on-workspace.sh)
 COPY --chmod=644 extra_model_paths.yaml /ComfyUI/extra_model_paths.yaml
 COPY --chmod=644 workflows/ /ComfyUI/user/default/workflows/
+COPY --chmod=755 custom_nodes/ComfyUI-CivitaiLoraSearch/ /ComfyUI/custom_nodes/ComfyUI-CivitaiLoraSearch/
 COPY --chmod=644 comfy.settings.json /ComfyUI/user/default/comfy.settings.json
 COPY --chmod=644 character_sheet_example.png /ComfyUI/input/character_sheet_example.png
 COPY --chmod=644 example_photo.png /ComfyUI/input/example_photo.png
@@ -298,6 +316,7 @@ COPY --chmod=755 download_VibeVoice.sh /download_VibeVoice.sh
 COPY --chmod=755 download_z-image.sh /download_z-image.sh
 COPY --chmod=755 download_LTX2.sh /download_LTX2.sh
 COPY --chmod=755 download_LTX2.3.sh /download_LTX2.3.sh
+COPY --chmod=755 download_CharacterUpscale.sh /download_CharacterUpscale.sh
 
 # Model files are no longer baked into the image. Every model file in the image is pulled and
 # unpacked by RunPod and then copied to the network volume on first boot, so a 2.5 GB set of public
