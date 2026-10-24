@@ -42,18 +42,19 @@ class CivitaiLoraSearch:
                 "base_model": (list(BASE_MODELS), {"default": "Illustrious"}),
                 "id": ("STRING", {"default": "character_lora", "tooltip": "Manifest id for Load LoRA (Downloaded)"}),
                 "fallback_url": ("STRING", {"default": FALLBACK_URL, "tooltip": "Downloaded when nothing matches; empty = fail instead"}),
+                "lora_strength": ("FLOAT", {"default": 0.8, "min": 0.0, "max": 2.0, "step": 0.05, "tooltip": "Strength written into lora_tag"}),
             },
             "optional": {
                 "suggestion": ("STRING", {"forceInput": True, "tooltip": "Text holding a Civitai model link, e.g. from Grok. Used when it matches the character."}),
             },
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("manifest_json", "trigger_words", "civitai_url")
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("manifest_json", "trigger_words", "civitai_url", "lora_tag")
     FUNCTION = "search"
     CATEGORY = "loaders/civitai"
 
-    def search(self, tags, base_model, id, fallback_url, suggestion=""):
+    def search(self, tags, base_model, id, fallback_url, lora_strength=0.8, suggestion=""):
         parts = [p.strip() for p in tags.replace("\n", ",").split(",") if p.strip()]
         character = re.sub(r"\s*\(.*?\)", "", (parts[0] if parts else "").replace("\\", "")).strip()
         series = parts[1] if len(parts) > 1 else ""
@@ -104,15 +105,21 @@ class CivitaiLoraSearch:
             url = f"https://civitai.red/api/download/models/{version['id']}"
             words = version.get("trainedWords", [])[:1]
             page = f"https://civitai.com/models/{model['id']}?modelVersionId={version['id']}"
+            name = re.sub(r"[^a-z0-9]+", "_", model.get("name", "lora").lower()).strip("_")[:50]
+            filename = f"{name}_{version['id']}"
             print(f"[Civitai LoRA Search] {character} ({source}): {model.get('name')} ({page})")
         elif fallback_url.strip():
             url, words, page = fallback_url.strip(), [], ""
+            filename = "fallback_" + "_".join(re.findall(r"\d+", url)[-1:])
             print(f"[Civitai LoRA Search] No {base_model} LoRA for '{character}', using the fallback")
         else:
             raise RuntimeError(f"No {base_model} LoRA found on Civitai for '{character}'")
 
-        manifest = [{"url": url, "model_type": "loras", "subfolder": "civitai_characters", "id": id}]
-        return (json.dumps(manifest), ", ".join(words), page)
+        # A fixed filename lets lora_tag (Impact Pack's <lora:...> syntax) name the file before it is downloaded
+        manifest = [{"url": url, "model_type": "loras", "subfolder": "civitai_characters",
+                     "filename": filename + ".safetensors", "id": id}]
+        lora_tag = f"<lora:civitai_characters/{filename}:{lora_strength}>"
+        return (json.dumps(manifest), ", ".join(words), page, lora_tag)
 
 
 NODE_CLASS_MAPPINGS = {"CivitaiLoraSearch": CivitaiLoraSearch}

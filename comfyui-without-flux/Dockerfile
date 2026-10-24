@@ -75,6 +75,7 @@ RUN uv pip install -U albumentations
 # order so later nodes still override the pins of earlier ones
 RUN set -eux; cd /ComfyUI/custom_nodes; \
     git clone --depth 1 --recursive --shallow-submodules https://github.com/ssitu/ComfyUI_UltimateSDUpscale & \
+    git clone --depth 1 --recursive --shallow-submodules https://github.com/receyuki/comfyui-prompt-reader-node & \
     printf '%s\n' \
         https://github.com/ltdrdata/ComfyUI-Manager.git \
         https://github.com/pythongosssss/ComfyUI-Custom-Scripts.git \
@@ -113,8 +114,9 @@ RUN set -eux; cd /ComfyUI/custom_nodes; \
         https://github.com/ltdrdata/ComfyUI-Inspire-Pack.git \
         https://github.com/Slartibart23/comfyui-grok-prompt-forge.git \
         https://github.com/watarika/ComfyUI-Model-Batch-Downloader.git \
+        https://github.com/goodguy1963/comfyui-auto-watermark-mask.git \
     | xargs -P 8 -n 1 git clone --depth 1; \
-    wait $!; \
+    wait; \
     python /ComfyUI/custom_nodes/x-flux-comfyui/setup.py; \
     uv pip install -r ComfyUI-Flowty-LDSR/requirements.txt; \
     uv pip install -r ComfyUI-SUPIR/requirements.txt; \
@@ -144,7 +146,9 @@ RUN set -eux; cd /ComfyUI/custom_nodes; \
     uv pip install -r ComfyUI-LTXVideo/requirements.txt; \
     uv pip install -r ComfyUI_Fictiverse/requirements.txt; \
     uv pip install -r ComfyUI-Inspire-Pack/requirements.txt; \
-    uv pip install -r comfyui-grok-prompt-forge/requirements.txt
+    uv pip install -r comfyui-grok-prompt-forge/requirements.txt; \
+    uv pip install -r comfyui-prompt-reader-node/requirements.txt; \
+    uv pip install -r comfyui-auto-watermark-mask/requirements.txt
 
 # Install AI-Toolkit's Python requirements (the code itself comes from the aitk-ui stage)
 COPY --from=aitk-ui /ai-toolkit/requirements*.txt /tmp/ai-toolkit/

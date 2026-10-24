@@ -16,12 +16,13 @@
 
 `Anime_Character_Upscale.json` upscales anime pictures and keeps the character right:
 
-1. It crops the face and asks Grok who the character is, their expression and what they are doing. You can give the series as a hint, but it isn't needed.
-2. It finds that character's LoRA on Civitai and downloads it once (to `models/loras/civitai_characters`).
-3. It upscales 2x with a tile ControlNet, IPAdapter and Ultimate SD Upscale.
-4. It re-renders the face with FaceDetailer and the character LoRA.
+1. It removes watermarks (OCR + Big-LaMa, then repaints the spots) and reads the prompt embedded in the picture, if any.
+2. It crops every face and asks Grok who each character is, their expression and what they are doing. The embedded prompt and an optional series hint are given to Grok as hints.
+3. For each face it finds the character's LoRA on Civitai (Grok suggests one, a search node checks it) and downloads it once (to `models/loras/civitai_characters`).
+4. It upscales 2x with a tile ControlNet, IPAdapter and Ultimate SD Upscale.
+5. It inpaints the faces one after another, left to right, each with its own LoRA.
 
-Point *Load Folder* at a directory to run every picture in it; each one gets its own character and LoRA. Set `XAI_API_KEY` (Grok) and `CAI_API_KEY` or `CIVITAI_API_TOKEN` (Civitai) in the RunPod template; they are read from the environment and never stored in the workflow. Set `DOWNLOAD_CHARACTER_UPSCALE=true` for its models.
+To run a folder, switch *Choose the input* to the folder group and set the batch count to the number of pictures; each run takes the next picture, and each face gets its own character and LoRA. `Anime_Upscale.json` does only the watermark removal and the upscale, with no Grok or Civitai calls. Set `XAI_API_KEY` (Grok) and `CAI_API_KEY` or `CIVITAI_API_TOKEN` (Civitai) in the RunPod template; they are read from the environment and never stored in the workflow. Set `DOWNLOAD_CHARACTER_UPSCALE=true` for its models.
 
 ## Choosing which models to download
 
