@@ -8,6 +8,8 @@ This is a shortened version of the README, read the full version here: [ComfyUI 
 
 ## Update 2026-10-22
 - New environment variable `JUPYTER_PASSWORD`: the login for JupyterLab. If it's left empty, JupyterLab opens without a login.
+- `civitai-download` is installed for downloading models from CivitAI (example notebook in `/workspace/civitai`). Set your CivitAI API key in the new `CAI_API_KEY` environment variable.
+- ComfyUI waits for Flux and its text encoders to download before it starts (`COMFYUI_WAIT_FOR_FLUX=false` turns this off); JupyterLab starts first.
 - Relaxed file permissions, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
 
 ## Choosing which models to download

@@ -170,6 +170,11 @@ RUN uv pip install "onnx==1.17.0" && \
 # ComfyUI's requirement after the AI-Toolkit install.
 RUN uv pip install "$(grep -iE '^av([<>=~ ]|$)' /ComfyUI/requirements.txt)"
 
+# CivitAI downloader: the civitai-download command and the civitai_downloader Python package, for
+# downloading LoRAs and checkpoints from JupyterLab (see civitai_downloader.ipynb). It reads the
+# API key from the CAI_API_KEY environment variable.
+RUN uv pip install "civitai-bulk-downloader @ git+https://github.com/deepratna-awale/civitai-bulk-downloader.git"
+
 # Same world-writable modes for the ComfyUI tree and the venv (see the aitk-ui stage)
 RUN chmod -R a+rwX /ComfyUI /opt/venv
 
@@ -235,6 +240,7 @@ COPY --chmod=755 download_lib.sh /download_lib.sh
 COPY --chmod=755 download_selected.sh /download_selected.sh
 COPY --chmod=755 download_base_models.sh /download_base_models.sh
 COPY --chmod=755 download_flux_extras.sh /download_flux_extras.sh
+COPY --chmod=644 civitai_downloader.ipynb /civitai_downloader.ipynb
 
 # JupyterLab: make folders named "checkpoints" (e.g. /ComfyUI/models/checkpoints) browsable.
 # Jupyter Server routes ".../checkpoints" URLs to its notebook-checkpoint API, which hides such

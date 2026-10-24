@@ -2,6 +2,27 @@
 
 echo "pod started"
 
+# Everything started from here (ComfyUI, JupyterLab, AI-Toolkit, model downloads) creates
+# world-writable files and folders, so nothing ends up locked to one user
+umask 000
+
+# The Civitai downloader node (Model Batch Downloader) reads CIVITAI_API_TOKEN; accept CAI_API_KEY too
+if [[ -z "${CIVITAI_API_TOKEN}" && -n "${CAI_API_KEY}" ]]; then
+    export CIVITAI_API_TOKEN="${CAI_API_KEY}"
+fi
+
+# Start JupyterLab first: it doesn't depend on the volume layout or the models, so it is usable
+# right away, e.g. to download LoRAs with civitai-download while the models are still downloading.
+# Its URL on the RunPod proxy is public, so set JUPYTER_PASSWORD to protect it; it is used as the
+# login token. Left empty, JupyterLab opens without any login.
+if [[ -n "${JUPYTER_PASSWORD}" ]]; then
+    JUPYTER_TOKEN="${JUPYTER_PASSWORD}" jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' &
+    echo "JupyterLab started (login with JUPYTER_PASSWORD)"
+else
+    jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' --ServerApp.token='' --ServerApp.password='' &
+    echo "JupyterLab started without a login (JUPYTER_PASSWORD is not set)"
+fi
+
 if [[ $PUBLIC_KEY ]]
 then
     mkdir -p ~/.ssh
@@ -13,29 +34,12 @@ then
     service ssh start
 fi
 
-# Everything started from here (ComfyUI, JupyterLab, AI-Toolkit, model downloads) creates
-# world-writable files and folders, so nothing ends up locked to one user
-umask 000
-
-# The Civitai downloader node (Model Batch Downloader) reads CIVITAI_API_TOKEN; accept CAI_API_KEY too
-if [[ -z "${CIVITAI_API_TOKEN}" && -n "${CAI_API_KEY}" ]]; then
-    export CIVITAI_API_TOKEN="${CAI_API_KEY}"
-fi
-
-# Start nginx and JupyterLab first: they don't depend on the volume layout, so they are usable
-# while the volume is being set up.
 # Start nginx as reverse proxy to enable api access
 service nginx start
 
-# Start JupyterLab. Its URL on the RunPod proxy is public, so set JUPYTER_PASSWORD to protect it;
-# it is used as the login token. Left empty, JupyterLab opens without any login.
-if [[ -n "${JUPYTER_PASSWORD}" ]]; then
-    JUPYTER_TOKEN="${JUPYTER_PASSWORD}" jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' &
-    echo "JupyterLab started (login with JUPYTER_PASSWORD)"
-else
-    jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --ServerApp.allow_origin='*' --ServerApp.token='' --ServerApp.password='' &
-    echo "JupyterLab started without a login (JUPYTER_PASSWORD is not set)"
-fi
+# Example notebook for downloading models from CivitAI (civitai-download is installed in the image)
+mkdir -p /workspace/civitai
+[ -f /workspace/civitai/civitai_downloader.ipynb ] || cp /civitai_downloader.ipynb /workspace/civitai/
 
 # Keep ComfyUI's models, input, output, user folder and user-installed custom nodes on the volume
 /comfyui-on-workspace.sh
@@ -73,11 +77,15 @@ else
 fi
 
 # Fetch the selected model sets (by default Flux and what its workflows need, see
-# /download_selected.sh for the DOWNLOAD_* options) straight to the volume, in the background so
-# they don't delay startup. Already-present files are skipped and every file appears atomically
-# when complete.
+# /download_selected.sh for the DOWNLOAD_* options) straight to the volume, in the background.
+# Already-present files are skipped and every file appears atomically when complete.
+# /download_selected.sh creates $FLUX_READY_FILE once the Flux set (Flux, its VAE and the clip_l and
+# t5xxl text encoders) is done, so ComfyUI can wait for it below.
+export FLUX_READY_FILE=/tmp/flux-models-ready
+rm -f "$FLUX_READY_FILE"
 echo "Starting background model downloads (log: /workspace/model_downloads.log)"
 /download_selected.sh > /workspace/model_downloads.log 2>&1 &
+DOWNLOAD_PID=$!
 
 # Check if the flux model is present
 bash /check_files.sh
@@ -98,6 +106,17 @@ if [ ! -f /workspace/start_user.sh ]; then
 else
     # Volumes from older images still call the removed Mixlab script
     sed -i '/disable_mixlab.sh/d' /workspace/start_user.sh
+fi
+
+# Flux workflows can't run without the Flux model and its text encoders, so ComfyUI waits for them
+# (COMFYUI_WAIT_FOR_FLUX=false starts it right away). The other model sets keep downloading in the
+# background. If the downloads stop without finishing the Flux set, ComfyUI starts anyway.
+if [[ ! "${COMFYUI_WAIT_FOR_FLUX,,}" =~ ^(false|0|no|off)$ ]] && [ ! -e "$FLUX_READY_FILE" ]; then
+    echo "Waiting for Flux and its text encoders to download before starting ComfyUI (log: /workspace/model_downloads.log)"
+    while [ ! -e "$FLUX_READY_FILE" ] && kill -0 "$DOWNLOAD_PID" 2>/dev/null; do
+        sleep 2
+    done
+    echo "Flux models are ready"
 fi
 
 # Execute the user's script
