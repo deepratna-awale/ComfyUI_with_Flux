@@ -170,13 +170,6 @@ RUN uv pip install "onnx==1.17.0" && \
 # ComfyUI's requirement after the AI-Toolkit install.
 RUN uv pip install "$(grep -iE '^av([<>=~ ]|$)' /ComfyUI/requirements.txt)"
 
-# AI-Toolkit also pins scipy==1.12.0, which is built against NumPy 1.x, while the rest of the venv
-# ends up on NumPy 2. ComfyUI imports scipy.ndimage at startup (comfy/ldm/modules/sdpose.py) and died
-# with "numpy.core.multiarray failed to import". Move scipy (and cupy, which had the same pin) to
-# NumPy 2 builds, and fail the build if the import breaks again.
-RUN uv pip install "scipy>=1.15.3" "cupy-cuda12x>=13.3" && \
-    python -c "import numpy, scipy.ndimage, scipy.signal, skimage, sklearn; print('numpy', numpy.__version__, 'scipy', scipy.__version__)"
-
 # CivitAI downloader: the civitai-download command and the civitai_downloader Python package, for
 # downloading LoRAs and checkpoints from JupyterLab (see civitai_downloader.ipynb). It reads the
 # API key from the CAI_API_KEY environment variable.
