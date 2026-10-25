@@ -7,9 +7,9 @@
     - Models download in the background, several files at a time and over multiple connections each. JupyterLab is the first thing to start and the AI-Toolkit UI comes up right away too. ComfyUI waits only for Flux and its text encoders, so the Flux workflows work as soon as it opens, while the other model sets keep downloading.
     - Dropped the unused CUDA runtime libraries from the image (PyTorch ships its own) and the git history of all custom nodes.
     - AI-Toolkit's code now stays inside the image; only your configs, datasets, outputs and the UI database are persisted on the volume in `/workspace/ai-toolkit-data`. `/workspace/ai-toolkit` still works as before.
-    - Removed the Mixlab nodes from the image (they were disabled at startup anyway).
+    - Removed the Mixlab nodes from the image (they were disabled at startup anyway). Set `ENABLE_MIXLAB=true` to have them downloaded to the network volume and loaded on pod start; with it off they are not downloaded.
     - **ComfyUI is no longer copied to the network volume.** Its code, the bundled custom nodes and the Python environment stay in the image, so the first start doesn't wait for a 1.5 GB copy and image updates actually take effect. Only your data lives on the volume, see [What is stored on the network volume](#what-is-stored-on-the-network-volume).
-- **New environment variable `JUPYTER_PASSWORD`**: the login for JupyterLab. If it's left empty, JupyterLab opens without a login.
+- **JupyterLab always needs a login**: set it with the new `JUPYTER_PASSWORD` environment variable. If it's left empty, a random token is created and a login link is printed to the pod's logs. Once a browser has logged in it stays logged in, also after the pod restarts.
 - **CivitAI downloader included**: `civitai-download` ([civitai-bulk-downloader](https://github.com/deepratna-awale/civitai-bulk-downloader)) is installed, with an example notebook in `/workspace/civitai`. Set your CivitAI API key in the new `CAI_API_KEY` environment variable, see [Downloading models from CivitAI](#downloading-models-from-civitai).
 - **Relaxed file permissions**: files and folders in the image and on `/workspace` can be written by every user and tool, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
 
@@ -33,7 +33,7 @@ Set these as environment variables in the RunPod template, or when deploying a p
 
 | Environment variable | Default | Downloads |
 |---|---|---|
-| `DOWNLOAD_FLUX` | `true` | Flux.1-dev and Flux.1-Kontext-dev (needs `HF_TOKEN`, gated repo) plus the clip_l and t5xxl fp8 text encoders and the example LoRAs |
+| `DOWNLOAD_FLUX` | `true` | Flux.1-dev and Flux.1-Kontext-dev (needs `HF_TOKEN`, gated repo) plus the clip_l and t5xxl fp8 text encoders and the example LoRAs. Set it to `false` to skip all Flux models, e.g. when you want to use a checkpoint from CivitAI instead; in the 'with Flux' image the baked-in Flux files are then not copied to the volume and the companion models are not downloaded |
 | `DOWNLOAD_FLUX_EXTRAS` | `true` | Openpose annotators and the other Flux companion models, once the Flux model is on the volume |
 | `DOWNLOAD_BASE_MODELS` | `false` | SD 1.5, inswapper (FaceSwap) and the face detection model (Facedetailer) |
 | `DOWNLOAD_FLUX2` | `false` | Flux.2-dev fp8, its VAE and text encoder |
@@ -206,8 +206,9 @@ If you want to use a different workflow, keep in mind you must use the API forma
 You can use JupyterLab to upload files to your pod, like custom LoRa models or other files.
 
 Click on the "Connect to HTTP Service [Port 8888]" button to open JupyterLab.
-Set the `JUPYTER_PASSWORD` environment variable in the template to protect JupyterLab: you will be asked for a token, enter that password.
-If `JUPYTER_PASSWORD` is left empty, JupyterLab opens without any login. The pod's proxy URL is public, so anyone who has that URL then gets full access to the pod, including your HF_TOKEN and your files.
+JupyterLab always asks for a login, because the pod's proxy URL is public and JupyterLab gives full access to the pod, including your HF_TOKEN and your files.
+Set the `JUPYTER_PASSWORD` environment variable in the template and enter it when you are asked for a token, or open `https://<pod id>-8888.proxy.runpod.net/lab?token=<your password>` to skip the login page. If `JUPYTER_PASSWORD` is left empty, a random token is created on every start and a ready-to-click login link is printed to the pod's logs.
+You only log in once per browser: the login cookie is kept valid across pod restarts and redeploys on the same network volume (the key is stored in `/workspace/.jupyter`).
 
 JupyterLab is started first, before the volume setup and the model downloads, so you can use it while the models are still downloading.
 

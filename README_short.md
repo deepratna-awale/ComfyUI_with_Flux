@@ -7,13 +7,14 @@
 This is a shortened version of the README, read the full version here: [ComfyUI with Flux.1-dev README](https://github.com/ValyrianTech/ComfyUI_with_Flux/blob/main/README.md)
 
 ## Update 2026-10-22
-- New environment variable `JUPYTER_PASSWORD`: the login for JupyterLab. If it's left empty, JupyterLab opens without a login.
+- JupyterLab always needs a login, set with the new `JUPYTER_PASSWORD` environment variable (if it's empty, a random token and a login link are printed to the pod's logs). A browser stays logged in across pod restarts.
 - `civitai-download` is installed for downloading models from CivitAI (example notebook in `/workspace/civitai`). Set your CivitAI API key in the new `CAI_API_KEY` environment variable.
 - ComfyUI waits for Flux and its text encoders to download before it starts (`COMFYUI_WAIT_FOR_FLUX=false` turns this off); JupyterLab starts first.
+- The Mixlab nodes are no longer in the image; set `ENABLE_MIXLAB=true` to download and load them on pod start.
 - Relaxed file permissions, so JupyterLab, ComfyUI-Manager and AI-Toolkit no longer hit permission errors.
 
 ## Choosing which models to download
-Models download to the network volume in the background on pod start, so ComfyUI starts right away. By default only Flux (`DOWNLOAD_FLUX=true`, needs `HF_TOKEN`) and the models its workflows need are downloaded. Enable other sets with environment variables such as `DOWNLOAD_WAN22=true`, `DOWNLOAD_LTX23=true` or `DOWNLOAD_QWEN_FP8=true`, or list them in `DOWNLOAD_MODELS=wan2.2,ltx2.3`. See the full README for every option.
+Models download to the network volume in the background on pod start, so ComfyUI starts right away. By default only Flux (`DOWNLOAD_FLUX=true`, needs `HF_TOKEN`) and the models its workflows need are downloaded; `DOWNLOAD_FLUX=false` skips all of them, also in the 'with Flux' image, e.g. to use a CivitAI checkpoint instead. Enable other sets with environment variables such as `DOWNLOAD_WAN22=true`, `DOWNLOAD_LTX23=true` or `DOWNLOAD_QWEN_FP8=true`, or list them in `DOWNLOAD_MODELS=wan2.2,ltx2.3`. See the full README for every option.
 
 ## What is stored on the network volume
 Only your data: models, ComfyUI's input, output and user folders (workflows, settings) and the custom nodes you install yourself, all in `/workspace/comfyui-data`, plus `/workspace/ai-toolkit-data`. ComfyUI's code, the bundled custom nodes and the Python environment stay in the image, so nothing is copied on the first start. `/workspace/ComfyUI` still works as before. Older volumes are moved over automatically and the leftover code is kept in `/workspace/ComfyUI.old`. See the full README for details.
