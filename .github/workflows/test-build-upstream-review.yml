@@ -1,0 +1,85 @@
+name: Test build of both images (upstream PR branch)
+
+# Fork-only test build. Builds comfyui-without-flux from this branch, then comfyui-with-flux on top
+# of it. The gated Flux files are replaced with small placeholder files, which is enough to test the
+# image layout and the linking on start. Both images go to the existing public package, tagged
+# review-without-<sha> and review-with-<sha>.
+on:
+  workflow_dispatch:
+  push:
+    branches: [test-build-upstream-review]
+
+concurrency:
+  group: test-build-upstream-review
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/comfyui-without-flux
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@v10
+        with:
+          root-reserve-mb: 6144
+          temp-reserve-mb: 1024
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+          build-mount-path: /var/lib/docker
+
+      - name: Restart Docker on the enlarged volume
+        run: |
+          sudo service docker restart
+          df -h /var/lib/docker
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push without-flux
+        uses: docker/build-push-action@v6
+        with:
+          context: comfyui-without-flux
+          file: comfyui-without-flux/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE }}:review-without-${{ github.sha }}
+          provenance: false
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
+
+      - name: Prepare with-flux context
+        run: |
+          cd comfyui-with-flux
+          head -c 1048576 /dev/urandom > flux/ae.sft
+          head -c 1048576 /dev/urandom > flux/flux1-dev.sft
+          sed -i "s#^FROM .*#FROM ${IMAGE}:review-without-${GITHUB_SHA}#" Dockerfile
+          head -1 Dockerfile
+
+      - name: Build and push with-flux
+        uses: docker/build-push-action@v6
+        with:
+          context: comfyui-with-flux
+          file: comfyui-with-flux/Dockerfile
+          push: true
+          tags: ${{ env.IMAGE }}:review-with-${{ github.sha }}
+          provenance: false
+
+      - name: Report
+        run: df -h /var/lib/docker
